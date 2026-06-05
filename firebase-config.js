@@ -19,10 +19,10 @@
  *    }
  */
 window.FIREBASE_CONFIG = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey:            "AIzaSyBsIu6akHr6aRwB4lttpXeBXCKTGOw9Vo4",
+  authDomain:        "matrix-feb00.firebaseapp.com",
+  projectId:         "matrix-feb00",
+  storageBucket:     "matrix-feb00.firebasestorage.app",
+  messagingSenderId: "804534871012",
+  appId:             "1:804534871012:web:5dcd7375d3dd6e88a61df1"
 };
