@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Matrix — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="Matrix.css">
+<script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">⊞</div>
+      <div class="login-brand-name">Matrix</div>
+    </div>
+
+    <!-- Sign in -->
+    <div id="view-signin">
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to your @maruti.co.in account</div>
+      <div class="login-err" id="signin-err"></div>
+      <div class="login-form">
+        <div class="mf">
+          <label class="ml">Email</label>
+          <input class="mi" id="signin-email" type="email" placeholder="you@maruti.co.in" autocomplete="email">
+        </div>
+        <div class="mf">
+          <label class="ml">Password</label>
+          <input class="mi" id="signin-pass" type="password" placeholder="Password" autocomplete="current-password">
+          <a class="forgot-link" id="forgot-link">Forgot password?</a>
+        </div>
+        <button class="login-submit" id="signin-btn" data-label="Sign in">Sign in</button>
+      </div>
+      <div class="login-toggle">
+        Don't have an account? <a id="goto-create">Create one</a>
+      </div>
+    </div>
+
+    <!-- Create account -->
+    <div id="view-create" style="display:none">
+      <div class="login-title">Create account</div>
+      <div class="login-sub">Use your @maruti.co.in work email</div>
+      <div class="login-err" id="create-err"></div>
+      <div class="login-form">
+        <div class="mf">
+          <label class="ml">Email</label>
+          <input class="mi" id="create-email" type="email" placeholder="you@maruti.co.in" autocomplete="email">
+        </div>
+        <div class="mf">
+          <label class="ml">Password</label>
+          <input class="mi" id="create-pass" type="password" placeholder="At least 6 characters" autocomplete="new-password">
+        </div>
+        <div class="mf">
+          <label class="ml">Confirm password</label>
+          <input class="mi" id="create-pass2" type="password" placeholder="Repeat password" autocomplete="new-password">
+        </div>
+        <button class="login-submit" id="create-btn" data-label="Create account">Create account</button>
+      </div>
+      <div class="login-toggle">
+        Already have an account? <a id="goto-signin">Sign in</a>
+      </div>
+    </div>
+
+    <!-- Forgot password -->
+    <div id="view-forgot" style="display:none">
+      <div class="login-title">Reset password</div>
+      <div class="login-sub">We'll send a reset link to your inbox</div>
+      <div class="login-err"     id="forgot-err"></div>
+      <div class="login-success" id="forgot-ok">Reset email sent — check your inbox.</div>
+      <div class="login-form">
+        <div class="mf">
+          <label class="ml">Email</label>
+          <input class="mi" id="forgot-email" type="email" placeholder="you@maruti.co.in" autocomplete="email">
+        </div>
+        <button class="login-submit" id="forgot-btn" data-label="Send reset email">Send reset email</button>
+      </div>
+      <div class="login-toggle">
+        <a id="goto-signin2">Back to sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }                                  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged,
+         signInWithEmailAndPassword,
+         createUserWithEmailAndPassword,
+         sendPasswordResetEmail }                         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+  document.querySelector('.login-card').innerHTML = `
+    <div class="login-brand"><div class="brand-icon">⊞</div><div class="login-brand-name">Matrix</div></div>
+    <div class="login-title" style="font-size:17px;">Firebase setup required</div>
+    <div class="login-sub">Open <code style="background:var(--paper2);padding:2px 6px;border-radius:5px;font-size:12px;">firebase-config.js</code> and fill in your Firebase project credentials. See the comments in that file for step-by-step instructions.</div>`;
+  throw new Error('Firebase not configured');
+}
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+onAuthStateChanged(auth, user => { if (user) window.location.href = 'index.html'; });
+
+function isMarutiEmail(e) { return /^[^\s@]+@maruti\.co\.in$/i.test(e); }
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function setBusy(btnId, busy) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = busy;
+  btn.textContent = busy ? 'Please wait…' : btn.getAttribute('data-label');
+}
+
+function showView(name) {
+  ['signin', 'create', 'forgot'].forEach(v => {
+    document.getElementById('view-' + v).style.display = v === name ? '' : 'none';
+  });
+  ['signin-err', 'create-err', 'forgot-err'].forEach(id => showErr(id, ''));
+  document.getElementById('forgot-ok').style.display = 'none';
+}
+
+document.getElementById('goto-create').addEventListener('click',  () => showView('create'));
+document.getElementById('goto-signin').addEventListener('click',  () => showView('signin'));
+document.getElementById('goto-signin2').addEventListener('click', () => showView('signin'));
+document.getElementById('forgot-link').addEventListener('click',  () => showView('forgot'));
+
+/* ── Sign in ── */
+document.getElementById('signin-btn').addEventListener('click', async () => {
+  const email = document.getElementById('signin-email').value.trim();
+  const pass  = document.getElementById('signin-pass').value;
+  showErr('signin-err', '');
+  if (!email || !pass) { showErr('signin-err', 'Please fill in all fields.'); return; }
+  if (!isMarutiEmail(email)) { showErr('signin-err', 'Only @maruti.co.in email addresses are allowed.'); return; }
+  setBusy('signin-btn', true);
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    window.location.href = 'index.html';
+  } catch (e) {
+    showErr('signin-err', friendlyError(e.code));
+    setBusy('signin-btn', false);
+  }
+});
+document.getElementById('signin-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('signin-btn').click();
+});
+
+/* ── Create account ── */
+document.getElementById('create-btn').addEventListener('click', async () => {
+  const email = document.getElementById('create-email').value.trim();
+  const pass  = document.getElementById('create-pass').value;
+  const pass2 = document.getElementById('create-pass2').value;
+  showErr('create-err', '');
+  if (!email || !pass || !pass2) { showErr('create-err', 'Please fill in all fields.'); return; }
+  if (!isMarutiEmail(email))     { showErr('create-err', 'Only @maruti.co.in email addresses are allowed.'); return; }
+  if (pass.length < 6)           { showErr('create-err', 'Password must be at least 6 characters.'); return; }
+  if (pass !== pass2)            { showErr('create-err', 'Passwords do not match.'); return; }
+  setBusy('create-btn', true);
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db, 'users', cred.user.uid, 'settings', 'prefs'), {
+      reminderEnabled: false, reminderFrequencyHours: 24, lastReminderSentAt: 0,
+    });
+    window.location.href = 'index.html';
+  } catch (e) {
+    showErr('create-err', friendlyError(e.code));
+    setBusy('create-btn', false);
+  }
+});
+
+/* ── Forgot password ── */
+document.getElementById('forgot-btn').addEventListener('click', async () => {
+  const email = document.getElementById('forgot-email').value.trim();
+  showErr('forgot-err', '');
+  document.getElementById('forgot-ok').style.display = 'none';
+  if (!email) { showErr('forgot-err', 'Please enter your email address.'); return; }
+  if (!isMarutiEmail(email)) { showErr('forgot-err', 'Only @maruti.co.in email addresses are allowed.'); return; }
+  setBusy('forgot-btn', true);
+  try {
+    await sendPasswordResetEmail(auth, email);
+    document.getElementById('forgot-ok').style.display = 'block';
+  } catch (e) {
+    showErr('forgot-err', friendlyError(e.code));
+  }
+  setBusy('forgot-btn', false);
+});
+
+function friendlyError(code) {
+  switch (code) {
+    case 'auth/invalid-email':          return 'Invalid email address.';
+    case 'auth/user-not-found':         return 'No account found with that email.';
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':     return 'Incorrect email or password.';
+    case 'auth/email-already-in-use':   return 'An account with this email already exists.';
+    case 'auth/weak-password':          return 'Password must be at least 6 characters.';
+    case 'auth/too-many-requests':      return 'Too many attempts. Please try again later.';
+    case 'auth/network-request-failed': return 'Network error — check your connection.';
+    default:                            return 'Something went wrong. Please try again.';
+  }
+}
+</script>
+</body>
+</html>

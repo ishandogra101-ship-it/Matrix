@@ -1,0 +1,9 @@
+{
+  "name": "matrix-reminders",
+  "version": "1.0.0",
+  "description": "Background reminder script for Matrix app",
+  "type": "commonjs",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}
