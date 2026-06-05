@@ -71,11 +71,27 @@
     <div class="reminder-row">
       <div class="reminder-label">Frequency</div>
       <select class="freq-select" id="reminder-freq">
+        <option value="4">Every 4 hours</option>
         <option value="8">Every 8 hours</option>
         <option value="24">Every 24 hours</option>
         <option value="48">Every 48 hours</option>
         <option value="72">Every 3 days</option>
+        <option value="custom">Custom…</option>
       </select>
+    </div>
+    <div class="reminder-row" id="reminder-custom-row" style="display:none">
+      <div>
+        <div class="reminder-label">Custom interval</div>
+        <div class="reminder-sub">Enter number of hours between reminders</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="number" id="reminder-custom-val" min="1" max="720"
+               style="width:64px;font-family:inherit;font-size:14px;font-weight:600;
+                      padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--r8);
+                      background:var(--surface2);color:var(--ink);outline:none;text-align:center;"
+               placeholder="24">
+        <span style="font-size:12px;color:var(--ink4);font-weight:600;">hrs</span>
+      </div>
     </div>
     <div class="reminder-last" id="reminder-last"></div>
     <div class="modal-btns">
@@ -483,24 +499,53 @@ function openEdit(id) {
 }
 
 /* ── Reminder settings modal ── */
-const reminderOverlay = document.getElementById('reminder-overlay');
-document.getElementById('sb-reminder-btn').addEventListener('click', () => {
+const reminderOverlay   = document.getElementById('reminder-overlay');
+const reminderFreqSel   = document.getElementById('reminder-freq');
+const reminderCustomRow = document.getElementById('reminder-custom-row');
+const reminderCustomVal = document.getElementById('reminder-custom-val');
+
+const PRESET_HOURS = ['4','8','24','48','72'];
+
+function openReminderModal() {
   document.getElementById('reminder-toggle').checked = !!settings.reminderEnabled;
-  document.getElementById('reminder-freq').value     = settings.reminderFrequencyHours || 24;
+  const h = String(settings.reminderFrequencyHours || 24);
+  if (PRESET_HOURS.includes(h)) {
+    reminderFreqSel.value = h;
+    reminderCustomRow.style.display = 'none';
+  } else {
+    reminderFreqSel.value       = 'custom';
+    reminderCustomVal.value     = h;
+    reminderCustomRow.style.display = '';
+  }
   const last = settings.lastReminderSentAt;
   document.getElementById('reminder-last').textContent = last
     ? `Last sent: ${new Date(last).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} at ${new Date(last).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`
     : 'Not sent yet';
   reminderOverlay.classList.add('open');
+}
+
+reminderFreqSel.addEventListener('change', () => {
+  reminderCustomRow.style.display = reminderFreqSel.value === 'custom' ? '' : 'none';
+  if (reminderFreqSel.value === 'custom') setTimeout(() => reminderCustomVal.focus(), 50);
 });
+
+document.getElementById('sb-reminder-btn').addEventListener('click', openReminderModal);
 document.getElementById('reminder-cancel').addEventListener('click', () => reminderOverlay.classList.remove('open'));
 reminderOverlay.addEventListener('click', e => { if (e.target === reminderOverlay) reminderOverlay.classList.remove('open'); });
+
 document.getElementById('reminder-save').addEventListener('click', async () => {
-  settings.reminderEnabled          = document.getElementById('reminder-toggle').checked;
-  settings.reminderFrequencyHours   = parseInt(document.getElementById('reminder-freq').value, 10);
+  settings.reminderEnabled = document.getElementById('reminder-toggle').checked;
+  if (reminderFreqSel.value === 'custom') {
+    const v = parseInt(reminderCustomVal.value, 10);
+    if (!v || v < 1) { reminderCustomVal.style.borderColor = 'var(--rust)'; reminderCustomVal.focus(); return; }
+    reminderCustomVal.style.borderColor = '';
+    settings.reminderFrequencyHours = v;
+  } else {
+    settings.reminderFrequencyHours = parseInt(reminderFreqSel.value, 10);
+  }
   await saveSettings();
   reminderOverlay.classList.remove('open');
-  showToast('Reminder settings saved');
+  showToast(`Reminders set — every ${settings.reminderFrequencyHours}h when app is open`);
 });
 
 /* ── EmailJS helpers ── */
