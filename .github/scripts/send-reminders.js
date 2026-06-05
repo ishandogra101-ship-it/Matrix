@@ -9,7 +9,7 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db      = admin.firestore();
 const auth    = admin.auth();
 const PA_URL  = process.env.POWER_AUTOMATE_URL;
-const APP_URL = process.env.APP_URL || 'https://matrix-feb00.web.app';
+const APP_URL = process.env.APP_URL || 'https://ishandogra101-ship-it.github.io/Matrix/';
 
 if (!PA_URL || PA_URL === 'YOUR_POWER_AUTOMATE_URL') {
   console.error('POWER_AUTOMATE_URL secret is not set.');
