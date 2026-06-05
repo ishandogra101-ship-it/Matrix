@@ -1,0 +1,27 @@
+name: Send Q1 Reminders
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # Runs every hour; script skips users whose interval hasn't elapsed
+  workflow_dispatch:        # Also allows manual trigger from GitHub Actions tab for testing
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --production
+        working-directory: .github/scripts
+
+      - name: Send reminders
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          POWER_AUTOMATE_URL: ${{ secrets.POWER_AUTOMATE_URL }}
+          APP_URL: https://ishandogra101-ship-it.github.io/Matrix/index.html
+        run: node .github/scripts/send-reminders.js

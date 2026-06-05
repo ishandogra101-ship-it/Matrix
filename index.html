@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="Matrix.css">
 <script src="firebase-config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="notifications-config.js"></script>
 </head>
 <body>
 
@@ -326,12 +326,9 @@ const app  = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-/* ── EmailJS ── */
-const EJS_KEY     = 'YOUR_PUBLIC_KEY';
-const EJS_SERVICE = 'YOUR_SERVICE_ID';
-const EJS_TMPL    = 'YOUR_TEMPLATE_ID';
-const EMAIL_CONFIGURED = EJS_KEY !== 'YOUR_PUBLIC_KEY';
-if (EMAIL_CONFIGURED) emailjs.init(EJS_KEY);
+/* ── Notifications (Power Automate → Outlook) ── */
+const PA_URL = window.NOTIFICATIONS_CONFIG?.powerAutomateUrl;
+const NOTIFICATIONS_CONFIGURED = !!(PA_URL && PA_URL !== 'YOUR_POWER_AUTOMATE_URL');
 
 /* ── Auth guard ── */
 onAuthStateChanged(auth, user => {
@@ -548,19 +545,80 @@ document.getElementById('reminder-save').addEventListener('click', async () => {
   showToast(`Reminders set — every ${settings.reminderFrequencyHours}h when app is open`);
 });
 
-/* ── EmailJS helpers ── */
+/* ── Notifications via Power Automate → Outlook ── */
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildReminderEmail(taskList) {
+  const count  = taskList.length;
+  const plural = count === 1 ? '' : 's';
+  const date   = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  const appUrl = window.location.origin + window.location.pathname;
+
+  const cards = taskList.map(t => `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+           style="margin-bottom:10px;border:1.5px solid #e6e8f6;border-left:3px solid #f43f5e;
+                  border-radius:10px;background:#f6f7fd;">
+      <tr><td style="padding:10px 14px;">
+        <div style="font-size:13.5px;font-weight:600;color:#15162b;line-height:1.4;">${escHtml(t.text)}</div>
+        <div style="margin-top:5px;">
+          <span style="display:inline-block;background:#ffe3e9;color:#be123c;padding:1px 7px;
+                       border-radius:100px;font-size:9px;font-weight:700;text-transform:uppercase;
+                       letter-spacing:.06em;">${escHtml(getCatLabel(t.tag||'other'))}</span>
+          ${t.createdAt ? `<span style="font-size:11px;color:#a3a7c9;margin-left:6px;">Added ${fmtDate(t.createdAt)}</span>` : ''}
+        </div>
+      </td></tr>
+    </table>`).join('');
+
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Matrix Reminder</title></head>
+<body style="margin:0;padding:0;background:#eef0fb;font-family:'Segoe UI',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0fb;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+  <tr><td style="background:#6366f1;background:linear-gradient(135deg,#6366f1 0%,#a855f7 100%);
+                 border-radius:16px 16px 0 0;padding:28px 28px 24px;">
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td style="background:rgba(255,255,255,.2);border-radius:9px;width:34px;height:34px;
+                 text-align:center;vertical-align:middle;font-size:16px;color:white;">⊞</td>
+      <td style="padding-left:10px;font-size:19px;font-weight:700;color:white;letter-spacing:-.5px;">Matrix</td>
+    </tr></table>
+    <div style="margin-top:18px;font-size:22px;font-weight:700;color:white;line-height:1.25;">
+      🔥 ${count} urgent task${plural} need${count===1?'s':''} attention</div>
+    <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,.7);">
+      Q1 · Urgent &amp; Important · ${date}</div>
+  </td></tr>
+  <tr><td style="background:#ffffff;padding:20px 24px 12px;">${cards}</td></tr>
+  <tr><td style="background:#f4f5fc;border-radius:0 0 16px 16px;padding:24px;text-align:center;
+                 border-top:1px solid #e6e8f6;">
+    <a href="${escHtml(appUrl)}"
+       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:white;
+              text-decoration:none;font-weight:700;font-size:14px;padding:13px 32px;border-radius:100px;">
+      Open Matrix App →</a>
+    <div style="margin-top:16px;font-size:11px;color:#a3a7c9;line-height:1.6;">
+      You're receiving this because email reminders are enabled in your Matrix account.<br>
+      Change frequency under <strong>Reminders</strong> in the sidebar.</div>
+  </td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+async function postToPA(toEmail, taskList) {
+  const subject = `🔥 Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need attention`;
+  const res = await fetch(PA_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to_email: toEmail, subject, html_body: buildReminderEmail(taskList) }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
 async function sendTaskEmail(task) {
-  if (!EMAIL_CONFIGURED || !currentUser) return;
+  if (!NOTIFICATIONS_CONFIGURED || !currentUser) return;
   try {
-    await emailjs.send(EJS_SERVICE, EJS_TMPL, {
-      to_email:  currentUser.email,
-      task_name: task.text,
-      task_note: task.note || '—',
-      task_tag:  getCatLabel(task.tag || 'other'),
-      quadrant:  'Q1 — Do First (Urgent + Important)',
-    }, EJS_KEY);
+    await postToPA(currentUser.email, [task]);
     showToast('Reminder sent ✓');
-  } catch { showToast('Failed to send — check EmailJS config'); }
+  } catch { showToast('Failed to send — check Power Automate config'); }
 }
 function triggerNotify(taskId) {
   const task = tasks.find(t => t.id === taskId); if (!task) return;
@@ -569,19 +627,13 @@ function triggerNotify(taskId) {
 
 /* ── On-open reminder check ── */
 async function checkReminder() {
-  if (!EMAIL_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
+  if (!NOTIFICATIONS_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
   const freqMs = (settings.reminderFrequencyHours || 24) * 3_600_000;
   if (Date.now() - (settings.lastReminderSentAt || 0) < freqMs) return;
   const open = tasks.filter(t => t.q === 'q1' && !t.done);
   if (!open.length) return;
   try {
-    await emailjs.send(EJS_SERVICE, EJS_TMPL, {
-      to_email:  currentUser.email,
-      task_name: `${open.length} open Q1 task${open.length > 1 ? 's' : ''}`,
-      task_note: open.map(t => `• ${t.text}`).join('\n'),
-      task_tag:  'Digest',
-      quadrant:  'Q1 — Do First (Urgent + Important)',
-    }, EJS_KEY);
+    await postToPA(currentUser.email, open);
     settings.lastReminderSentAt = Date.now();
     await saveSettings();
   } catch { /* silent */ }
@@ -677,7 +729,7 @@ async function addTask(q, text, note, tag) {
   };
   try {
     await setDoc(doc(tasksRef, id), t);
-    if (q === 'q1' && EMAIL_CONFIGURED) sendTaskEmail({ ...t, id });
+    if (q === 'q1' && NOTIFICATIONS_CONFIGURED) sendTaskEmail({ ...t, id });
   } catch { showToast('Failed to add task'); }
 }
 
@@ -850,7 +902,7 @@ function lerpColor(t) {
 
 /* ── Render ── */
 function taskHTML(t, isQ1) {
-  const bellBtn = isQ1 && EMAIL_CONFIGURED
+  const bellBtn = isQ1 && NOTIFICATIONS_CONFIGURED
     ? `<button class="ta-btn bell" data-action="notify" data-id="${t.id}" title="Send reminder">🔔</button>`
     : '';
   const dateStr = t.done && t.completedAt
