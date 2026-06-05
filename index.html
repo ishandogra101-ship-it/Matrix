@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Matrix — Eisenhower Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -92,12 +92,12 @@
   </div>
   <div class="topbar-right">
     <span class="stats-text" id="stats-text"></span>
-    <button class="cats-btn" id="cats-btn">⚙ Tags</button>
+    <button class="cats-btn" id="cats-btn" title="Manage categories">⚙</button>
     <button class="clear-btn" id="clear-done-btn">Clear done</button>
   </div>
 </header>
 
-<!-- Axis x -->
+<!-- Axis x (desktop only) -->
 <div class="axis-x-row">
   <div></div>
   <div class="axis-x-label ax-urgent">⚡ Urgent</div>
@@ -105,7 +105,7 @@
 </div>
 
 <!-- Matrix -->
-<main class="matrix-wrap">
+<main class="matrix-wrap" id="matrix-wrap" data-active-tab="q1">
   <div class="axis-y">
     <div class="axis-y-label ay-important">★ Important</div>
     <div class="axis-y-label">Not Important</div>
@@ -114,7 +114,7 @@
   <!-- Q1 -->
   <div class="quadrant q1" id="q1" data-q="q1">
     <div class="q-header">
-      <div class="q-icon">🔥</div>
+      <div class="q-icon" title="Expand">🔥</div>
       <div class="q-label">
         <div class="q-action">Do First</div>
         <div class="q-desc">Urgent · Important</div>
@@ -143,7 +143,7 @@
   <!-- Q2 -->
   <div class="quadrant q2" id="q2" data-q="q2">
     <div class="q-header">
-      <div class="q-icon">📅</div>
+      <div class="q-icon" title="Expand">📅</div>
       <div class="q-label">
         <div class="q-action">Schedule</div>
         <div class="q-desc">Not Urgent · Important</div>
@@ -170,7 +170,7 @@
   <!-- Q3 -->
   <div class="quadrant q3" id="q3" data-q="q3">
     <div class="q-header">
-      <div class="q-icon">🤝</div>
+      <div class="q-icon" title="Expand">🤝</div>
       <div class="q-label">
         <div class="q-action">Delegate</div>
         <div class="q-desc">Urgent · Not Important</div>
@@ -197,7 +197,7 @@
   <!-- Q4 -->
   <div class="quadrant q4" id="q4" data-q="q4">
     <div class="q-header">
-      <div class="q-icon">🗑️</div>
+      <div class="q-icon" title="Expand">🗑️</div>
       <div class="q-label">
         <div class="q-action">Eliminate</div>
         <div class="q-desc">Not Urgent · Not Important</div>
@@ -222,6 +222,26 @@
   </div>
 </main>
 
+<!-- Mobile tab bar -->
+<nav class="tab-bar" id="tab-bar">
+  <button class="tab-btn tq1 active" data-q="q1">
+    <span class="tab-icon">🔥</span>
+    <span>Do First</span>
+  </button>
+  <button class="tab-btn tq2" data-q="q2">
+    <span class="tab-icon">📅</span>
+    <span>Schedule</span>
+  </button>
+  <button class="tab-btn tq3" data-q="q3">
+    <span class="tab-icon">🤝</span>
+    <span>Delegate</span>
+  </button>
+  <button class="tab-btn tq4" data-q="q4">
+    <span class="tab-icon">🗑️</span>
+    <span>Eliminate</span>
+  </button>
+</nav>
+
 <script>
 (function(){
 'use strict';
@@ -230,7 +250,8 @@
 const EJS_KEY     = 'YOUR_PUBLIC_KEY';
 const EJS_SERVICE = 'YOUR_SERVICE_ID';
 const EJS_TMPL    = 'YOUR_TEMPLATE_ID';
-emailjs.init(EJS_KEY);
+const EMAIL_CONFIGURED = EJS_KEY !== 'YOUR_PUBLIC_KEY';
+if (EMAIL_CONFIGURED) emailjs.init(EJS_KEY);
 
 /* ── Category presets ── */
 const COLOR_PRESETS = [
@@ -250,9 +271,9 @@ const DEFAULT_CATEGORIES = [
   {id:'other',    label:'Other',    bg:'#f4f5fc', color:'#73769e'},
 ];
 
-const STORE      = 'matrix_v1';
-const STORE_CATS = 'matrix_cats';
-const STORE_EMAIL= 'matrix_email';
+const STORE       = 'matrix_v1';
+const STORE_CATS  = 'matrix_cats';
+const STORE_EMAIL = 'matrix_email';
 
 let tasks         = load();
 let categories    = loadCategories();
@@ -262,6 +283,7 @@ let deleteFn      = null;
 let dragId        = null;
 let searchQ       = '';
 let emailSetupCb  = null;
+let activeTab     = 'q1';
 
 function load(){try{return JSON.parse(localStorage.getItem(STORE)||'[]');}catch{return[];}}
 function save(){localStorage.setItem(STORE,JSON.stringify(tasks));}
@@ -306,8 +328,7 @@ function buildCatOptions(selectedId){
 }
 function refreshAllSelects(){
   document.querySelectorAll('.inline-sel').forEach(sel=>{
-    const cur=sel.value;
-    sel.innerHTML=buildCatOptions(cur);
+    const cur=sel.value;sel.innerHTML=buildCatOptions(cur);
   });
 }
 
@@ -359,9 +380,7 @@ emailSetupOverlay.addEventListener('click',e=>{
 });
 document.getElementById('email-setup-save').addEventListener('click',()=>{
   const val=emailSetupInp.value.trim();
-  if(!isValidEmail(val)){
-    emailSetupErr.style.display='block';emailSetupInp.focus();return;
-  }
+  if(!isValidEmail(val)){emailSetupErr.style.display='block';emailSetupInp.focus();return;}
   emailSetupErr.style.display='none';
   emailSettings.email=val;saveEmailSettings();
   emailSetupOverlay.classList.remove('open');
@@ -376,31 +395,32 @@ function openEmailSetup(cb){
   setTimeout(()=>emailSetupInp.focus(),100);
 }
 
-/* ── Q1 bell toggle ── */
+/* ── Q1 bell toggle (only shown when EmailJS is configured) ── */
 const bellBtn=document.getElementById('q1-bell-toggle');
-function updateBellUI(){
-  bellBtn.classList.toggle('active',!!emailSettings.autoNotify);
-  bellBtn.title=emailSettings.autoNotify?'Auto-notify ON (click to disable)':'Auto-notify OFF (click to enable)';
-}
-bellBtn.addEventListener('click',()=>{
-  if(!emailSettings.autoNotify){
-    if(!emailSettings.email){
-      openEmailSetup(()=>{emailSettings.autoNotify=true;saveEmailSettings();updateBellUI();});
-      return;
-    }
-    emailSettings.autoNotify=true;
-  } else {
-    emailSettings.autoNotify=false;
+if(!EMAIL_CONFIGURED){
+  bellBtn.style.display='none';
+} else {
+  function updateBellUI(){
+    bellBtn.classList.toggle('active',!!emailSettings.autoNotify);
+    bellBtn.title=emailSettings.autoNotify?'Auto-notify ON — click to disable':'Auto-notify OFF — click to enable';
   }
-  saveEmailSettings();updateBellUI();
-});
-updateBellUI();
+  bellBtn.addEventListener('click',()=>{
+    if(!emailSettings.autoNotify){
+      if(!emailSettings.email){
+        openEmailSetup(()=>{emailSettings.autoNotify=true;saveEmailSettings();updateBellUI();});
+        return;
+      }
+      emailSettings.autoNotify=true;
+    } else {
+      emailSettings.autoNotify=false;
+    }
+    saveEmailSettings();updateBellUI();
+  });
+  updateBellUI();
+}
 
 /* ── Email sending ── */
 function sendTaskEmail(task,recipient){
-  if(EJS_KEY==='YOUR_PUBLIC_KEY'){
-    showToast('⚠ EmailJS not configured yet');return;
-  }
   emailjs.send(EJS_SERVICE,EJS_TMPL,{
     to_email:recipient,
     task_name:task.text,
@@ -429,7 +449,7 @@ catsOverlay.addEventListener('click',e=>{
   if(e.target===catsOverlay){catsOverlay.classList.remove('open');refreshAllSelects();render();}
 });
 document.getElementById('add-cat-btn').addEventListener('click',()=>{
-  const preset=COLOR_PRESETS[categories.length % COLOR_PRESETS.length];
+  const preset=COLOR_PRESETS[categories.length%COLOR_PRESETS.length];
   categories.push({id:'cat_'+uid(),label:'New tag',bg:preset.bg,color:preset.color});
   saveCategories();renderCatModal();
 });
@@ -446,7 +466,6 @@ function renderCatModal(){
       <button class="cat-del-btn" data-idx="${i}" title="Delete">✕</button>
     </div>
   `).join('');
-
   list.querySelectorAll('.cat-swatch').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const idx=parseInt(btn.getAttribute('data-idx'));
@@ -459,8 +478,7 @@ function renderCatModal(){
   list.querySelectorAll('.cat-label-inp').forEach(inp=>{
     inp.addEventListener('blur',()=>{
       const idx=parseInt(inp.getAttribute('data-idx'));
-      const val=inp.value.trim();
-      if(val)categories[idx].label=val;
+      const val=inp.value.trim();if(val)categories[idx].label=val;
       saveCategories();
     });
     inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
@@ -471,22 +489,51 @@ function renderCatModal(){
       const cat=categories[idx];
       if(tasks.some(t=>t.tag===cat.id)){
         const err=document.getElementById('cat-err-'+idx);
-        if(err){err.style.display='block';}
+        if(err)err.style.display='block';
         return;
       }
-      categories.splice(idx,1);
-      saveCategories();renderCatModal();
+      categories.splice(idx,1);saveCategories();renderCatModal();
     });
   });
 }
+
+/* ── Maximize on q-icon click ── */
+document.querySelectorAll('.q-icon').forEach(icon=>{
+  icon.addEventListener('click',()=>{
+    const quad=icon.closest('.quadrant');
+    const wasMax=quad.classList.contains('maximized');
+    document.querySelectorAll('.quadrant.maximized').forEach(q=>{
+      q.classList.remove('maximized');
+      q.querySelector('.q-icon').title='Expand';
+    });
+    if(!wasMax){
+      quad.classList.add('maximized');
+      icon.title='Collapse';
+    }
+  });
+});
+
+/* ── Mobile tab navigation ── */
+const matrixWrap=document.getElementById('matrix-wrap');
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeTab=btn.getAttribute('data-q');
+    matrixWrap.setAttribute('data-active-tab',activeTab);
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));
+    // close any open maximized quadrant when switching tabs
+    document.querySelectorAll('.quadrant.maximized').forEach(q=>{
+      q.classList.remove('maximized');
+      q.querySelector('.q-icon').title='Expand';
+    });
+  });
+});
 
 /* ── Task ops ── */
 function addTask(q,text,note,tag){
   if(!text.trim())return;
   const t={id:uid(),q,text:text.trim(),note:(note||'').trim(),tag:tag||categories[0].id,done:false,createdAt:Date.now()};
-  tasks.push(t);
-  save();render();
-  if(q==='q1'&&emailSettings.autoNotify&&emailSettings.email){
+  tasks.push(t);save();render();
+  if(q==='q1'&&EMAIL_CONFIGURED&&emailSettings.autoNotify&&emailSettings.email){
     sendTaskEmail(t,emailSettings.email);
   }
 }
@@ -500,8 +547,7 @@ document.getElementById('clear-done-btn').addEventListener('click',()=>{
 
 /* ── Search ── */
 document.getElementById('search-inp').addEventListener('input',e=>{
-  searchQ=e.target.value.trim().toLowerCase();
-  applySearch();
+  searchQ=e.target.value.trim().toLowerCase();applySearch();
 });
 function applySearch(){
   document.querySelectorAll('.task-card').forEach(card=>{
@@ -531,7 +577,6 @@ document.querySelectorAll('.add-task-btn').forEach(btn=>{
     }
   });
 });
-
 function closePanel(q){
   const panel=document.getElementById(q+'-add');
   panel.classList.remove('open');
@@ -540,7 +585,6 @@ function closePanel(q){
   const btn=document.querySelector(`.add-task-btn[data-q="${q}"]`);
   if(btn)btn.style.display='';
 }
-
 document.querySelectorAll('.inline-cancel').forEach(btn=>{
   btn.addEventListener('click',()=>closePanel(btn.getAttribute('data-q')));
 });
@@ -576,8 +620,7 @@ function makeDraggable(card,id){
   card.setAttribute('draggable','true');
   card.addEventListener('dragstart',e=>{
     dragId=id;card.classList.add('dragging');
-    e.dataTransfer.effectAllowed='move';
-    e.dataTransfer.setData('text/plain',id);
+    e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',id);
   });
   card.addEventListener('dragend',()=>{card.classList.remove('dragging');dragId=null;});
 }
@@ -591,12 +634,10 @@ function makeTouchDraggable(card,id,q){
     const rect=card.getBoundingClientRect();
     touchClone=card.cloneNode(true);
     touchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.65;pointer-events:none;z-index:9999;border-radius:15px;box-shadow:0 20px 40px rgba(28,30,80,.25);`;
-    document.body.appendChild(touchClone);
-    card.style.opacity='.25';
+    document.body.appendChild(touchClone);card.style.opacity='.25';
   },{passive:true});
   card.addEventListener('touchmove',e=>{
-    if(!touchClone)return;
-    e.preventDefault();
+    if(!touchClone)return;e.preventDefault();
     const t=e.touches[0];
     touchClone.style.left=(t.clientX-touchClone.offsetWidth/2)+'px';
     touchClone.style.top=(t.clientY-36)+'px';
@@ -615,8 +656,7 @@ function makeTouchDraggable(card,id,q){
       tasks=tasks.map(tk=>tk.id===touchDragId?{...tk,q:quad.getAttribute('data-q')}:tk);
       save();render();
     }
-    touchClone.remove();touchClone=null;
-    card.style.opacity='';
+    touchClone.remove();touchClone=null;card.style.opacity='';
     touchDragId=null;touchOriginQ=null;
   });
 }
@@ -645,7 +685,7 @@ document.querySelectorAll('.quadrant').forEach(quad=>{
   });
 });
 
-/* ── Priority gradient helpers ── */
+/* ── Priority gradient ── */
 function lerpColor(t){
   const r=[244,63,94],b=[147,197,253];
   return `rgb(${Math.round(r[0]+(b[0]-r[0])*t)},${Math.round(r[1]+(b[1]-r[1])*t)},${Math.round(r[2]+(b[2]-r[2])*t)})`;
@@ -653,7 +693,7 @@ function lerpColor(t){
 
 /* ── Render ── */
 function taskHTML(t,isQ1){
-  const bellBtn=isQ1
+  const bellBtn=isQ1&&EMAIL_CONFIGURED
     ?`<button class="ta-btn bell" data-action="notify" data-id="${t.id}" title="Send reminder">🔔</button>`
     :'';
   return `<div class="task-card${t.done?' done-card':''}"
