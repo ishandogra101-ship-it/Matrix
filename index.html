@@ -1,18 +1,523 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Matrix — Eisenhower Planner</title>
-  <link rel="stylesheet" href="matrix.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Matrix — Eisenhower Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS (from Docket) ── */
+:root {
+  --ink:#15162b;--ink2:#3d3f63;--ink3:#73769e;--ink4:#a3a7c9;--ink5:#cfd2e8;
+  --paper:#eef0fb;--paper2:#f4f5fc;--paper3:#e4e7f5;--paper4:#d3d7ee;
+  --surface:#ffffff;--surface2:#f6f7fd;--surface3:#eef0fa;
+  --border:#e6e8f6;--border2:#d9dcf0;
+  --primary:#5b5bf5;--primaryD:#4543e6;--primaryS:#ececff;--primaryB:rgba(91,91,245,.16);
+  --violet:#9333ea;
+  --grad:linear-gradient(135deg,#6366f1 0%,#a855f7 100%);
+  --grad-warm:linear-gradient(135deg,#f59e0b,#f43f5e);
+  --grad-mint:linear-gradient(135deg,#10b981,#22d3ee);
+  --amber:#f59e0b;--amberD:#b45309;--amberS:#fef4d8;--amberB:rgba(245,158,11,.18);
+  --green:#10b981;--greenD:#047857;--greenS:#d6f7e8;
+  --blue:#3b82f6;--blueS:#e4efff;
+  --purple:#d946ef;--purpleS:#fbe6fd;
+  --rust:#f43f5e;--rustS:#ffe3e9;
+  --sky:#0ea5e9;--skyS:#ddf3fe;
+  --r6:8px;--r8:11px;--r12:15px;--r16:20px;--r20:26px;--rpill:100px;
+  --ease:180ms cubic-bezier(.4,0,.2,1);
+  --ease-spring:.42s cubic-bezier(.34,1.56,.64,1);
+  --sh-sm:0 2px 8px rgba(28,30,80,.06);
+  --sh:0 10px 30px rgba(40,42,110,.10);
+  --sh-lg:0 24px 60px rgba(28,30,80,.20);
+  --ring:rgba(91,91,245,.35);
+
+  /* quadrant colours */
+  --q1:#f43f5e; --q1s:#ffe3e9; --q1b:rgba(244,63,94,.15);
+  --q2:#5b5bf5; --q2s:#ececff; --q2b:rgba(91,91,245,.15);
+  --q3:#10b981; --q3s:#d6f7e8; --q3b:rgba(16,185,129,.15);
+  --q4:#a3a7c9; --q4s:#f4f5fc; --q4b:rgba(163,167,201,.15);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:15px;-webkit-tap-highlight-color:transparent;scroll-behavior:smooth;}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--paper);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(60% 50% at 12% -5%,rgba(99,102,241,.16),transparent 60%),
+    radial-gradient(50% 45% at 100% 0%,rgba(168,85,247,.14),transparent 55%),
+    radial-gradient(55% 45% at 50% 110%,rgba(244,63,94,.08),transparent 60%);
+  pointer-events:none;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;opacity:.5;
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  background:color-mix(in srgb,var(--surface) 78%,transparent);
+  backdrop-filter:blur(16px) saturate(1.4);
+  -webkit-backdrop-filter:blur(16px) saturate(1.4);
+  padding:0 22px;height:60px;
+  display:flex;align-items:center;gap:14px;
+  border-bottom:1px solid var(--border);
+}
+.brand{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;font-size:20px;
+  color:var(--ink);letter-spacing:-.02em;
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.brand-icon{
+  width:28px;height:28px;border-radius:9px;
+  background:var(--grad);
+  display:grid;place-items:center;
+  box-shadow:0 4px 12px rgba(99,102,241,.45);
+  font-size:13px;
+}
+
+.search-wrap{
+  position:relative;flex:1;max-width:300px;
+  display:flex;align-items:center;
+}
+.search-icon{
+  position:absolute;left:13px;color:var(--ink4);
+  pointer-events:none;font-size:14px;
+}
+.search-inp{
+  width:100%;font-family:inherit;font-size:13.5px;font-weight:500;
+  padding:9px 14px 9px 36px;
+  border:1.5px solid var(--border);border-radius:var(--rpill);
+  background:var(--surface2);color:var(--ink);outline:none;
+  transition:all var(--ease);
+}
+.search-inp::placeholder{color:var(--ink4);font-weight:500;}
+.search-inp:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 4px var(--primaryB);}
+
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+.stats-text{font-size:12.5px;font-weight:600;color:var(--ink3);}
+.stats-text strong{color:var(--primary);}
+
+.clear-btn{
+  font-family:inherit;font-size:13px;font-weight:700;
+  padding:8px 16px;border-radius:var(--rpill);
+  border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--ink3);
+  cursor:pointer;transition:all var(--ease);white-space:nowrap;
+}
+.clear-btn:hover{background:var(--rustS);color:var(--rust);border-color:var(--rust);}
+
+/* ── AXIS LABELS ── */
+.axis-x-row{
+  display:grid;
+  grid-template-columns:26px 1fr 1fr;
+  gap:12px;
+  padding:20px 22px 6px;
+}
+.axis-x-label{
+  font-size:11px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink4);text-align:center;
+  padding-bottom:8px;
+  border-bottom:2px solid var(--border2);
+  border-radius:2px;
+}
+.ax-urgent{color:var(--rust);border-color:rgba(244,63,94,.35);}
+
+/* ── MATRIX GRID ── */
+.matrix-wrap{
+  display:grid;
+  grid-template-columns:26px 1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:12px;
+  padding:0 22px 28px;
+  min-height:calc(100vh - 128px);
+}
+.axis-y{
+  grid-column:1;grid-row:1/3;
+  display:flex;flex-direction:column;gap:12px;
+}
+.axis-y-label{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase;
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  color:var(--ink4);
+  border-right:2px solid var(--border2);
+  padding-right:5px;
+}
+.ay-important{color:var(--primary);border-color:rgba(91,91,245,.35);}
+
+/* ── QUADRANT ── */
+.quadrant{
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:var(--r16);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  min-height:220px;
+  box-shadow:var(--sh-sm);
+  transition:border-color var(--ease),box-shadow var(--ease),transform var(--ease);
+}
+.quadrant:hover{box-shadow:var(--sh);}
+.quadrant.drag-over{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--primaryB),var(--sh);
+  transform:scale(1.005);
+}
+
+.q-header{
+  padding:14px 16px 11px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:8px;flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.q-header::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:3px;
+}
+.q1 .q-header::before{background:linear-gradient(90deg,var(--rust),#fb7185);}
+.q2 .q-header::before{background:var(--grad);}
+.q3 .q-header::before{background:var(--grad-mint);}
+.q4 .q-header::before{background:linear-gradient(90deg,var(--ink4),var(--ink5));}
+
+.q-icon{
+  width:34px;height:34px;border-radius:10px;
+  display:grid;place-items:center;font-size:16px;
+  flex-shrink:0;
+}
+.q1 .q-icon{background:var(--rustS);}
+.q2 .q-icon{background:var(--primaryS);}
+.q3 .q-icon{background:var(--greenS);}
+.q4 .q-icon{background:var(--paper3);}
+
+.q-label{flex:1;}
+.q-action{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:700;
+  letter-spacing:-.01em;
+}
+.q1 .q-action{color:var(--rust);}
+.q2 .q-action{color:var(--primary);}
+.q3 .q-action{color:var(--greenD);}
+.q4 .q-action{color:var(--ink3);}
+
+.q-desc{font-size:11px;font-weight:600;color:var(--ink4);margin-top:2px;letter-spacing:.02em;}
+
+.q-count{
+  font-size:11.5px;font-weight:700;
+  padding:3px 10px;border-radius:var(--rpill);
+  flex-shrink:0;margin-top:4px;
+}
+.q1 .q-count{background:var(--q1s);color:var(--q1);}
+.q2 .q-count{background:var(--q2s);color:var(--q2);}
+.q3 .q-count{background:var(--q3s);color:var(--q3);}
+.q4 .q-count{background:var(--q4s);color:var(--q4);}
+
+/* ── TASK LIST ── */
+.q-body{
+  flex:1;overflow-y:auto;padding:10px;
+  display:flex;flex-direction:column;gap:5px;
+}
+.q-body::-webkit-scrollbar{width:4px;}
+.q-body::-webkit-scrollbar-track{background:transparent;}
+.q-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── TASK CARD ── */
+.task-card{
+  background:var(--surface2);
+  border:1.5px solid var(--border);
+  border-radius:var(--r12);
+  padding:10px 12px;
+  display:flex;align-items:flex-start;gap:10px;
+  cursor:grab;
+  transition:all var(--ease);
+  animation:fadeUp .2s var(--ease-spring) both;
+  position:relative;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.task-card:hover{
+  border-color:var(--border2);
+  background:var(--surface);
+  box-shadow:var(--sh-sm);
+  transform:translateY(-1px);
+}
+.task-card:active{cursor:grabbing;transform:scale(.98);}
+.task-card.dragging{opacity:.35;transform:scale(.96);}
+.task-card.done-card{opacity:.5;}
+.task-card.search-hidden{display:none;}
+.task-card.search-match{border-color:var(--primary);background:var(--primaryS);}
+
+/* ── CHECK ── */
+.task-chk{
+  width:18px;height:18px;border-radius:6px;
+  border:2px solid var(--border2);background:none;
+  cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:1px;
+  transition:all var(--ease-spring);
+}
+.task-chk:hover{border-color:var(--primary);background:var(--primaryS);transform:scale(1.12);}
+.task-chk.checked{background:var(--grad);border-color:transparent;box-shadow:0 3px 8px var(--primaryB);}
+.task-chk.checked::after{
+  content:'';width:4px;height:7px;
+  border:2px solid white;border-top:none;border-left:none;
+  transform:rotate(45deg) translate(-0.5px,-0.5px);display:block;
+}
+
+.task-body{flex:1;min-width:0;}
+.task-text{
+  font-size:13.5px;font-weight:600;
+  color:var(--ink);line-height:1.4;word-break:break-word;
+}
+.done-card .task-text{text-decoration:line-through;color:var(--ink3);}
+
+.task-note{
+  font-size:12px;font-weight:500;color:var(--ink3);
+  margin-top:3px;line-height:1.4;
+}
+.done-card .task-note{text-decoration:line-through;}
+
+.task-tag{
+  display:inline-flex;
+  font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 8px;border-radius:var(--rpill);
+  margin-top:5px;
+}
+.tt-work    {background:var(--blueS);color:var(--blue);}
+.tt-personal{background:var(--purpleS);color:var(--purple);}
+.tt-health  {background:var(--greenS);color:var(--greenD);}
+.tt-other   {background:var(--paper3);color:var(--ink3);}
+
+.task-actions{
+  display:flex;gap:3px;flex-shrink:0;
+  opacity:0;transition:opacity var(--ease);
+}
+.task-card:hover .task-actions{opacity:1;}
+@media(hover:none){.task-actions{opacity:.6;}}
+
+.ta-btn{
+  width:26px;height:26px;border-radius:var(--r6);
+  border:none;background:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--ink3);
+  transition:all var(--ease);
+}
+.ta-btn:hover{background:var(--surface3);color:var(--ink);}
+.ta-btn.del:hover{background:var(--rustS);color:var(--rust);}
+
+/* ── ADD FOOTER ── */
+.q-footer{
+  padding:8px;border-top:1px solid var(--border);
+  flex-shrink:0;background:var(--surface);
+}
+.add-task-btn{
+  width:100%;font-family:inherit;font-size:12.5px;font-weight:700;
+  letter-spacing:.04em;
+  padding:8px;border-radius:var(--r8);
+  border:1.5px dashed var(--border2);
+  background:none;color:var(--ink3);
+  cursor:pointer;transition:all var(--ease);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.q1 .add-task-btn:hover{border-color:var(--rust);color:var(--rust);background:var(--rustS);}
+.q2 .add-task-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primaryS);}
+.q3 .add-task-btn:hover{border-color:var(--green);color:var(--greenD);background:var(--greenS);}
+.q4 .add-task-btn:hover{border-color:var(--ink3);color:var(--ink2);background:var(--paper3);}
+
+.inline-add{display:none;flex-direction:column;gap:7px;}
+.inline-add.open{display:flex;}
+.inline-row{display:flex;gap:6px;}
+.inline-inp{
+  flex:1;font-family:inherit;font-size:13.5px;font-weight:500;
+  padding:9px 12px;border:1.5px solid var(--border2);border-radius:var(--r8);
+  background:var(--surface);color:var(--ink);outline:none;min-width:0;
+  transition:all var(--ease);
+}
+.inline-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primaryB);}
+.inline-inp::placeholder{color:var(--ink4);font-weight:500;}
+.inline-note{
+  font-family:inherit;font-size:12.5px;font-weight:500;
+  padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--r8);
+  background:var(--surface2);color:var(--ink);outline:none;width:100%;
+  transition:border-color var(--ease);
+}
+.inline-note:focus{border-color:var(--primary);}
+.inline-note::placeholder{color:var(--ink4);}
+.inline-selrow{display:flex;gap:6px;align-items:center;}
+.inline-sel{
+  font-family:inherit;font-size:12px;font-weight:600;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r8);padding:0 10px;color:var(--ink2);
+  cursor:pointer;outline:none;height:34px;flex:1;
+  transition:border-color var(--ease);
+}
+.inline-sel:focus{border-color:var(--primary);}
+.inline-ok{
+  font-family:inherit;font-size:12.5px;font-weight:700;
+  padding:0 16px;height:34px;border-radius:var(--r8);
+  border:none;background:var(--grad);color:white;
+  cursor:pointer;transition:all var(--ease);
+  box-shadow:0 4px 12px rgba(99,102,241,.3);
+  white-space:nowrap;flex-shrink:0;
+}
+.inline-ok:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(99,102,241,.4);}
+.inline-ok:active{transform:scale(.96);}
+.inline-cancel{
+  font-family:inherit;font-size:12px;font-weight:600;
+  padding:0 10px;height:34px;border-radius:var(--r8);
+  border:1.5px solid var(--border);background:none;color:var(--ink3);
+  cursor:pointer;transition:all var(--ease);flex-shrink:0;
+}
+.inline-cancel:hover{background:var(--surface3);color:var(--ink);}
+
+/* ── EMPTY ── */
+.q-empty{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-size:12.5px;font-weight:600;color:var(--ink4);
+  padding:20px;text-align:center;gap:8px;
+}
+.q-empty-icon{font-size:28px;opacity:.4;}
+
+/* ── MODALS ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(15,16,40,.5);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;transition:opacity .22s ease;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r20);padding:28px;width:100%;max-width:440px;
+  box-shadow:var(--sh-lg);
+  transform:translateY(18px) scale(.96);
+  transition:transform .34s cubic-bezier(.34,1.4,.5,1);
+  max-height:90vh;overflow-y:auto;
+}
+.modal-overlay.open .modal{transform:translateY(0) scale(1);}
+.modal-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:22px;font-weight:700;letter-spacing:-.02em;
+  color:var(--ink);margin-bottom:20px;
+}
+.mf{margin-bottom:14px;}
+.ml{
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:6px;display:block;
+}
+.mi,.ms{
+  width:100%;font-family:inherit;font-size:14px;font-weight:500;
+  padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r12);
+  background:var(--surface2);color:var(--ink);outline:none;
+  transition:all var(--ease);
+}
+.mi:focus,.ms:focus{border-color:var(--primary);background:var(--surface);box-shadow:0 0 0 4px var(--primaryB);}
+.ms{cursor:pointer;}
+.modal-btns{display:flex;gap:10px;margin-top:22px;}
+.modal-save{
+  flex:1;font-family:inherit;font-size:14px;font-weight:700;
+  padding:13px;border-radius:var(--r12);border:none;
+  background:var(--grad);color:white;cursor:pointer;
+  transition:all var(--ease);
+  box-shadow:0 8px 20px rgba(99,102,241,.36);
+}
+.modal-save:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(99,102,241,.46);}
+.modal-save:active{transform:scale(.97);}
+.modal-cancel{
+  font-family:inherit;font-size:14px;font-weight:600;
+  padding:13px 20px;border-radius:var(--r12);
+  border:1.5px solid var(--border);background:var(--surface2);color:var(--ink3);
+  cursor:pointer;transition:all var(--ease);
+}
+.modal-cancel:hover{background:var(--surface3);color:var(--ink);}
+
+/* ── CONFIRM ── */
+.confirm-overlay{
+  position:fixed;inset:0;background:rgba(15,16,40,.5);z-index:600;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;transition:opacity .15s ease;
+}
+.confirm-overlay.open{opacity:1;pointer-events:all;}
+.confirm-box{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r20);padding:26px;width:100%;max-width:320px;
+  box-shadow:var(--sh-lg);
+  transform:scale(.95);transition:transform .2s cubic-bezier(.34,1.3,.64,1);
+}
+.confirm-overlay.open .confirm-box{transform:scale(1);}
+.confirm-title{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:19px;font-weight:700;color:var(--ink);margin-bottom:8px;
+}
+.confirm-msg{font-size:13.5px;font-weight:500;color:var(--ink3);line-height:1.5;margin-bottom:20px;}
+.confirm-btns{display:flex;gap:10px;}
+.confirm-del{
+  flex:1;font-family:inherit;font-size:13.5px;font-weight:700;
+  padding:11px;border-radius:var(--r12);border:none;
+  background:linear-gradient(135deg,var(--rust),#fb7185);color:white;
+  cursor:pointer;transition:all var(--ease);
+  box-shadow:0 6px 16px rgba(244,63,94,.3);
+}
+.confirm-del:hover{transform:translateY(-1px);}
+.confirm-no{
+  font-family:inherit;font-size:13.5px;font-weight:600;
+  padding:11px 18px;border-radius:var(--r12);
+  border:1.5px solid var(--border);background:var(--surface2);color:var(--ink3);
+  cursor:pointer;transition:all var(--ease);
+}
+.confirm-no:hover{background:var(--surface3);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .topbar{padding:0 14px;height:54px;gap:10px;}
+  .brand span{display:none;}
+  .search-wrap{max-width:none;flex:1;}
+  .topbar-right .stats-text{display:none;}
+  .axis-x-row{padding:14px 14px 5px;grid-template-columns:20px 1fr 1fr;gap:8px;}
+  .matrix-wrap{padding:0 14px 24px;grid-template-columns:20px 1fr 1fr;gap:8px;min-height:auto;}
+  .quadrant{min-height:180px;}
+  .q-header{padding:11px 12px 9px;}
+  .q-action{font-size:13px;}
+  .q-desc{display:none;}
+  .q-icon{width:28px;height:28px;font-size:13px;}
+  .task-text{font-size:12.5px;}
+  .task-actions{opacity:.6;}
+  .axis-y-label{font-size:9px;}
+  .axis-x-label{font-size:9px;}
+}
+@media(max-width:420px){
+  .matrix-wrap{grid-template-columns:16px 1fr 1fr;gap:6px;}
+  .axis-x-row{grid-template-columns:16px 1fr 1fr;}
+  .inline-row{flex-wrap:wrap;}
+  .inline-inp{width:100%;flex:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
+</style>
 </head>
 <body>
 
-<!-- ── Confirm dialog ── -->
+<!-- Confirm -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
     <div class="confirm-title">Delete task?</div>
-    <div class="confirm-msg">This cannot be undone.</div>
+    <div class="confirm-msg">This action cannot be undone.</div>
     <div class="confirm-btns">
       <button class="confirm-no"  id="confirm-no">Cancel</button>
       <button class="confirm-del" id="confirm-yes">Delete</button>
@@ -20,29 +525,21 @@
   </div>
 </div>
 
-<!-- ── Edit modal ── -->
-<div class="overlay" id="edit-overlay">
+<!-- Edit modal -->
+<div class="modal-overlay" id="edit-overlay">
   <div class="modal">
     <div class="modal-title">Edit task</div>
-    <div class="mf">
-      <label class="ml">Task</label>
-      <input class="mi" id="edit-text" type="text">
-    </div>
-    <div class="mf">
-      <label class="ml">Note</label>
-      <input class="mi" id="edit-note" type="text" placeholder="Optional note…">
-    </div>
+    <div class="mf"><label class="ml">Task name</label><input class="mi" id="edit-text" type="text"></div>
+    <div class="mf"><label class="ml">Note</label><input class="mi" id="edit-note" type="text" placeholder="Optional note…"></div>
     <div class="mf">
       <label class="ml">Category</label>
       <select class="ms" id="edit-tag">
-        <option value="work">Work</option>
-        <option value="personal">Personal</option>
-        <option value="health">Health</option>
-        <option value="other">Other</option>
+        <option value="work">Work</option><option value="personal">Personal</option>
+        <option value="health">Health</option><option value="other">Other</option>
       </select>
     </div>
     <div class="mf">
-      <label class="ml">Quadrant</label>
+      <label class="ml">Move to quadrant</label>
       <select class="ms" id="edit-q">
         <option value="q1">Q1 — Do First (Urgent + Important)</option>
         <option value="q2">Q2 — Schedule (Not Urgent + Important)</option>
@@ -57,45 +554,45 @@
   </div>
 </div>
 
-<!-- ── Top bar ── -->
+<!-- Top bar -->
 <header class="topbar">
-  <div class="brand">Matrix <em>Eisenhower Planner</em></div>
-
+  <div class="brand">
+    <div class="brand-icon">⊞</div>
+    <span>Matrix</span>
+  </div>
   <div class="search-wrap">
-    <span class="search-icon">&#9906;</span>
+    <span class="search-icon">⌕</span>
     <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
   </div>
-
   <div class="topbar-right">
     <span class="stats-text" id="stats-text"></span>
     <button class="clear-btn" id="clear-done-btn">Clear done</button>
   </div>
 </header>
 
-<!-- ── Axis x labels ── -->
+<!-- Axis x -->
 <div class="axis-x-row">
-  <div class="axis-x-spacer"></div>
+  <div></div>
   <div class="axis-x-label ax-urgent">⚡ Urgent</div>
   <div class="axis-x-label">Not Urgent</div>
 </div>
 
-<!-- ── Matrix grid ── -->
+<!-- Matrix -->
 <main class="matrix-wrap">
-
-  <!-- Y axis -->
   <div class="axis-y">
-    <div class="axis-y-label ay-important">Important</div>
+    <div class="axis-y-label ay-important">★ Important</div>
     <div class="axis-y-label">Not Important</div>
   </div>
 
-  <!-- Q1: Urgent + Important -->
+  <!-- Q1 -->
   <div class="quadrant q1" id="q1" data-q="q1">
     <div class="q-header">
-      <div class="q-label-block">
+      <div class="q-icon">🔥</div>
+      <div class="q-label">
         <div class="q-action">Do First</div>
         <div class="q-desc">Urgent · Important</div>
       </div>
-      <div class="q-count" id="q1-count"></div>
+      <div class="q-count" id="q1-count">0</div>
     </div>
     <div class="q-body" id="q1-body"></div>
     <div class="q-footer">
@@ -109,24 +606,23 @@
         <input class="inline-note" data-q="q1" placeholder="Note (optional)…" type="text">
         <div class="inline-selrow">
           <select class="inline-sel" data-q="q1">
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="health">Health</option>
-            <option value="other">Other</option>
+            <option value="work">Work</option><option value="personal">Personal</option>
+            <option value="health">Health</option><option value="other">Other</option>
           </select>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Q2: Not Urgent + Important -->
+  <!-- Q2 -->
   <div class="quadrant q2" id="q2" data-q="q2">
     <div class="q-header">
-      <div class="q-label-block">
+      <div class="q-icon">📅</div>
+      <div class="q-label">
         <div class="q-action">Schedule</div>
         <div class="q-desc">Not Urgent · Important</div>
       </div>
-      <div class="q-count" id="q2-count"></div>
+      <div class="q-count" id="q2-count">0</div>
     </div>
     <div class="q-body" id="q2-body"></div>
     <div class="q-footer">
@@ -140,24 +636,23 @@
         <input class="inline-note" data-q="q2" placeholder="Note (optional)…" type="text">
         <div class="inline-selrow">
           <select class="inline-sel" data-q="q2">
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="health">Health</option>
-            <option value="other">Other</option>
+            <option value="work">Work</option><option value="personal">Personal</option>
+            <option value="health">Health</option><option value="other">Other</option>
           </select>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Q3: Urgent + Not Important -->
+  <!-- Q3 -->
   <div class="quadrant q3" id="q3" data-q="q3">
     <div class="q-header">
-      <div class="q-label-block">
+      <div class="q-icon">🤝</div>
+      <div class="q-label">
         <div class="q-action">Delegate</div>
         <div class="q-desc">Urgent · Not Important</div>
       </div>
-      <div class="q-count" id="q3-count"></div>
+      <div class="q-count" id="q3-count">0</div>
     </div>
     <div class="q-body" id="q3-body"></div>
     <div class="q-footer">
@@ -171,24 +666,23 @@
         <input class="inline-note" data-q="q3" placeholder="Note (optional)…" type="text">
         <div class="inline-selrow">
           <select class="inline-sel" data-q="q3">
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="health">Health</option>
-            <option value="other">Other</option>
+            <option value="work">Work</option><option value="personal">Personal</option>
+            <option value="health">Health</option><option value="other">Other</option>
           </select>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Q4: Not Urgent + Not Important -->
+  <!-- Q4 -->
   <div class="quadrant q4" id="q4" data-q="q4">
     <div class="q-header">
-      <div class="q-label-block">
+      <div class="q-icon">🗑️</div>
+      <div class="q-label">
         <div class="q-action">Eliminate</div>
         <div class="q-desc">Not Urgent · Not Important</div>
       </div>
-      <div class="q-count" id="q4-count"></div>
+      <div class="q-count" id="q4-count">0</div>
     </div>
     <div class="q-body" id="q4-body"></div>
     <div class="q-footer">
@@ -202,326 +696,261 @@
         <input class="inline-note" data-q="q4" placeholder="Note (optional)…" type="text">
         <div class="inline-selrow">
           <select class="inline-sel" data-q="q4">
-            <option value="work">Work</option>
-            <option value="personal">Personal</option>
-            <option value="health">Health</option>
-            <option value="other">Other</option>
+            <option value="work">Work</option><option value="personal">Personal</option>
+            <option value="health">Health</option><option value="other">Other</option>
           </select>
         </div>
       </div>
     </div>
   </div>
-
 </main>
 
 <script>
-(function () {
-  'use strict';
+(function(){
+'use strict';
 
-  /* ── State ── */
-  const STORE = 'eisenhower_v2';
-  let tasks    = load();
-  let editId   = null;
-  let deleteFn = null;
-  let dragId   = null;
-  let searchQ  = '';
+const STORE='matrix_v1';
+let tasks=load(), editId=null, deleteFn=null, dragId=null, searchQ='';
 
-  function load() { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; } }
-  function save() { localStorage.setItem(STORE, JSON.stringify(tasks)); }
-  function uid()  { return Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function load(){try{return JSON.parse(localStorage.getItem(STORE)||'[]');}catch{return[];}}
+function save(){localStorage.setItem(STORE,JSON.stringify(tasks));}
+function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-  /* ── Confirm dialog ── */
-  const confirmOverlay = document.getElementById('confirm-overlay');
-  document.getElementById('confirm-yes').addEventListener('click', () => {
-    confirmOverlay.classList.remove('open');
-    if (deleteFn) { deleteFn(); deleteFn = null; }
+/* ── confirm ── */
+const confirmOverlay=document.getElementById('confirm-overlay');
+document.getElementById('confirm-yes').addEventListener('click',()=>{
+  confirmOverlay.classList.remove('open');
+  if(deleteFn){deleteFn();deleteFn=null;}
+});
+document.getElementById('confirm-no').addEventListener('click',()=>{
+  confirmOverlay.classList.remove('open');deleteFn=null;
+});
+confirmOverlay.addEventListener('click',e=>{
+  if(e.target===confirmOverlay){confirmOverlay.classList.remove('open');deleteFn=null;}
+});
+function confirmDelete(fn){deleteFn=fn;confirmOverlay.classList.add('open');}
+
+/* ── edit modal ── */
+const editOverlay=document.getElementById('edit-overlay');
+const editText=document.getElementById('edit-text');
+const editNote=document.getElementById('edit-note');
+const editTag=document.getElementById('edit-tag');
+const editQSel=document.getElementById('edit-q');
+document.getElementById('edit-cancel').addEventListener('click',()=>{editOverlay.classList.remove('open');editId=null;});
+editOverlay.addEventListener('click',e=>{if(e.target===editOverlay){editOverlay.classList.remove('open');editId=null;}});
+document.getElementById('edit-save').addEventListener('click',()=>{
+  const txt=editText.value.trim();if(!txt||!editId)return;
+  tasks=tasks.map(t=>t.id===editId?{...t,text:txt,note:editNote.value.trim(),tag:editTag.value,q:editQSel.value}:t);
+  save();render();editOverlay.classList.remove('open');editId=null;
+});
+function openEdit(id){
+  const t=tasks.find(t=>t.id===id);if(!t)return;
+  editId=id;editText.value=t.text;editNote.value=t.note||'';
+  editTag.value=t.tag||'work';editQSel.value=t.q;
+  editOverlay.classList.add('open');
+  setTimeout(()=>editText.focus(),100);
+}
+
+/* ── ops ── */
+function addTask(q,text,note,tag){
+  if(!text.trim())return;
+  tasks.push({id:uid(),q,text:text.trim(),note:(note||'').trim(),tag:tag||'work',done:false,createdAt:Date.now()});
+  save();render();
+}
+function toggleTask(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);save();render();}
+function deleteTask(id){confirmDelete(()=>{tasks=tasks.filter(t=>t.id!==id);save();render();});}
+
+document.getElementById('clear-done-btn').addEventListener('click',()=>{
+  if(!tasks.some(t=>t.done))return;
+  confirmDelete(()=>{tasks=tasks.filter(t=>!t.done);save();render();});
+});
+
+/* ── search ── */
+document.getElementById('search-inp').addEventListener('input',e=>{
+  searchQ=e.target.value.trim().toLowerCase();
+  applySearch();
+});
+function applySearch(){
+  document.querySelectorAll('.task-card').forEach(card=>{
+    if(!searchQ){card.classList.remove('search-hidden','search-match');return;}
+    const text=(card.getAttribute('data-text')||'').toLowerCase();
+    const note=(card.getAttribute('data-note')||'').toLowerCase();
+    if(text.includes(searchQ)||note.includes(searchQ)){
+      card.classList.remove('search-hidden');card.classList.add('search-match');
+    } else {
+      card.classList.add('search-hidden');card.classList.remove('search-match');
+    }
   });
-  document.getElementById('confirm-no').addEventListener('click', () => {
-    confirmOverlay.classList.remove('open'); deleteFn = null;
+}
+
+/* ── inline add ── */
+document.querySelectorAll('.add-task-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const q=btn.getAttribute('data-q');
+    document.querySelectorAll('.inline-add').forEach(el=>{if(el.id!==q+'-add')el.classList.remove('open');});
+    document.querySelectorAll('.add-task-btn').forEach(b=>{b.style.display='';});
+    const panel=document.getElementById(q+'-add');
+    const isOpen=panel.classList.toggle('open');
+    btn.style.display=isOpen?'none':'';
+    if(isOpen)setTimeout(()=>panel.querySelector('.inline-inp').focus(),50);
   });
-  confirmOverlay.addEventListener('click', e => {
-    if (e.target === confirmOverlay) { confirmOverlay.classList.remove('open'); deleteFn = null; }
+});
+
+function closePanel(q){
+  const panel=document.getElementById(q+'-add');
+  panel.classList.remove('open');
+  panel.querySelector('.inline-inp').value='';
+  panel.querySelector('.inline-note').value='';
+  const btn=document.querySelector(`.add-task-btn[data-q="${q}"]`);
+  if(btn)btn.style.display='';
+}
+
+document.querySelectorAll('.inline-cancel').forEach(btn=>{
+  btn.addEventListener('click',()=>closePanel(btn.getAttribute('data-q')));
+});
+document.querySelectorAll('.inline-ok').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const q=btn.getAttribute('data-q');
+    const panel=document.getElementById(q+'-add');
+    const inp=panel.querySelector('.inline-inp');
+    const note=panel.querySelector('.inline-note');
+    const sel=panel.querySelector('.inline-sel');
+    if(!inp.value.trim()){inp.focus();return;}
+    addTask(q,inp.value,note.value,sel.value);
+    inp.value='';note.value='';inp.focus();
   });
-  function confirmDelete(fn) { deleteFn = fn; confirmOverlay.classList.add('open'); }
-
-  /* ── Edit modal ── */
-  const editOverlay = document.getElementById('edit-overlay');
-  const editText    = document.getElementById('edit-text');
-  const editNote    = document.getElementById('edit-note');
-  const editTag     = document.getElementById('edit-tag');
-  const editQSel    = document.getElementById('edit-q');
-
-  document.getElementById('edit-cancel').addEventListener('click', () => {
-    editOverlay.classList.remove('open'); editId = null;
+});
+document.querySelectorAll('.inline-inp').forEach(inp=>{
+  inp.addEventListener('keydown',e=>{
+    const q=inp.getAttribute('data-q');
+    if(e.key==='Enter'){
+      const panel=document.getElementById(q+'-add');
+      const note=panel.querySelector('.inline-note');
+      const sel=panel.querySelector('.inline-sel');
+      if(!inp.value.trim())return;
+      addTask(q,inp.value,note.value,sel.value);
+      inp.value='';note.value='';inp.focus();
+    }
+    if(e.key==='Escape')closePanel(q);
   });
-  editOverlay.addEventListener('click', e => {
-    if (e.target === editOverlay) { editOverlay.classList.remove('open'); editId = null; }
+});
+
+/* ── drag & drop (desktop) ── */
+function makeDraggable(card,id){
+  card.setAttribute('draggable','true');
+  card.addEventListener('dragstart',e=>{
+    dragId=id;card.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',id);
   });
-  document.getElementById('edit-save').addEventListener('click', () => {
-    const txt = editText.value.trim();
-    if (!txt || !editId) return;
-    tasks = tasks.map(t => t.id === editId
-      ? { ...t, text: txt, note: editNote.value.trim(), tag: editTag.value, q: editQSel.value }
-      : t);
-    save(); render(); editOverlay.classList.remove('open'); editId = null;
+  card.addEventListener('dragend',()=>{card.classList.remove('dragging');dragId=null;});
+}
+
+/* ── touch drag (mobile) ── */
+let touchDragId=null,touchClone=null,touchOriginQ=null;
+function makeTouchDraggable(card,id,q){
+  card.addEventListener('touchstart',e=>{
+    if(e.target.closest('button')||e.target.closest('.task-chk'))return;
+    touchDragId=id;touchOriginQ=q;
+    const rect=card.getBoundingClientRect();
+    touchClone=card.cloneNode(true);
+    touchClone.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:.65;pointer-events:none;z-index:9999;border-radius:15px;box-shadow:0 20px 40px rgba(28,30,80,.25);`;
+    document.body.appendChild(touchClone);
+    card.style.opacity='.25';
+  },{passive:true});
+  card.addEventListener('touchmove',e=>{
+    if(!touchClone)return;
+    e.preventDefault();
+    const t=e.touches[0];
+    touchClone.style.left=(t.clientX-touchClone.offsetWidth/2)+'px';
+    touchClone.style.top=(t.clientY-36)+'px';
+    document.querySelectorAll('.quadrant').forEach(q=>q.classList.remove('drag-over'));
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const quad=el?el.closest('.quadrant'):null;
+    if(quad)quad.classList.add('drag-over');
+  },{passive:false});
+  card.addEventListener('touchend',e=>{
+    if(!touchClone)return;
+    const t=e.changedTouches[0];
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    const quad=el?el.closest('.quadrant'):null;
+    document.querySelectorAll('.quadrant').forEach(q=>q.classList.remove('drag-over'));
+    if(quad&&quad.getAttribute('data-q')!==touchOriginQ){
+      tasks=tasks.map(tk=>tk.id===touchDragId?{...tk,q:quad.getAttribute('data-q')}:tk);
+      save();render();
+    }
+    touchClone.remove();touchClone=null;
+    card.style.opacity='';
+    touchDragId=null;touchOriginQ=null;
   });
-  function openEdit(id) {
-    const t = tasks.find(t => t.id === id); if (!t) return;
-    editId = id;
-    editText.value  = t.text;
-    editNote.value  = t.note || '';
-    editTag.value   = t.tag  || 'work';
-    editQSel.value  = t.q;
-    editOverlay.classList.add('open');
-    setTimeout(() => editText.focus(), 100);
-  }
+}
 
-  /* ── Task ops ── */
-  function addTask(q, text, note, tag) {
-    if (!text.trim()) return;
-    tasks.push({ id: uid(), q, text: text.trim(), note: (note || '').trim(), tag: tag || 'work', done: false, createdAt: Date.now() });
-    save(); render();
-  }
-  function toggleTask(id) {
-    tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
-    save(); render();
-  }
-  function deleteTask(id) {
-    confirmDelete(() => { tasks = tasks.filter(t => t.id !== id); save(); render(); });
-  }
-
-  /* ── Clear done ── */
-  document.getElementById('clear-done-btn').addEventListener('click', () => {
-    if (!tasks.some(t => t.done)) return;
-    confirmDelete(() => { tasks = tasks.filter(t => !t.done); save(); render(); });
+document.querySelectorAll('.quadrant').forEach(quad=>{
+  quad.addEventListener('dragover',e=>{e.preventDefault();quad.classList.add('drag-over');});
+  quad.addEventListener('dragleave',e=>{if(!quad.contains(e.relatedTarget))quad.classList.remove('drag-over');});
+  quad.addEventListener('drop',e=>{
+    e.preventDefault();quad.classList.remove('drag-over');
+    const id=e.dataTransfer.getData('text/plain')||dragId;if(!id)return;
+    tasks=tasks.map(t=>t.id===id?{...t,q:quad.getAttribute('data-q')}:t);
+    save();render();
   });
+});
 
-  /* ── Search ── */
-  document.getElementById('search-inp').addEventListener('input', e => {
-    searchQ = e.target.value.trim().toLowerCase();
-    applySearch();
+/* ── stable event delegation ── */
+['q1','q2','q3','q4'].forEach(q=>{
+  document.getElementById(q+'-body').addEventListener('click',e=>{
+    const el=e.target.closest('[data-action]');if(!el)return;
+    const id=el.getAttribute('data-id');
+    const a=el.getAttribute('data-action');
+    if(a==='toggle')toggleTask(id);
+    else if(a==='edit')openEdit(id);
+    else if(a==='del')deleteTask(id);
   });
+});
 
-  function applySearch() {
-    document.querySelectorAll('.task-card').forEach(card => {
-      if (!searchQ) {
-        card.classList.remove('search-hidden', 'search-match');
-        return;
-      }
-      const text = (card.getAttribute('data-text') || '').toLowerCase();
-      const note = (card.getAttribute('data-note') || '').toLowerCase();
-      if (text.includes(searchQ) || note.includes(searchQ)) {
-        card.classList.remove('search-hidden');
-        card.classList.add('search-match');
-      } else {
-        card.classList.add('search-hidden');
-        card.classList.remove('search-match');
-      }
-    });
-  }
+/* ── render ── */
+function taskHTML(t){
+  return `<div class="task-card${t.done?' done-card':''}"
+               data-id="${t.id}" data-text="${esc(t.text)}" data-note="${esc(t.note||'')}">
+    <div class="task-chk${t.done?' checked':''}" data-action="toggle" data-id="${t.id}"></div>
+    <div class="task-body">
+      <div class="task-text">${esc(t.text)}</div>
+      ${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}
+      <span class="task-tag tt-${esc(t.tag||'other')}">${esc(t.tag||'other')}</span>
+    </div>
+    <div class="task-actions">
+      <button class="ta-btn"     data-action="edit" data-id="${t.id}" title="Edit">✎</button>
+      <button class="ta-btn del" data-action="del"  data-id="${t.id}" title="Delete">✕</button>
+    </div>
+  </div>`;
+}
 
-  /* ── Inline add panels ── */
-  document.querySelectorAll('.add-task-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const q = btn.getAttribute('data-q');
-      // close all others
-      document.querySelectorAll('.inline-add').forEach(el => {
-        if (el.id !== q + '-add') el.classList.remove('open');
-      });
-      document.querySelectorAll('.add-task-btn').forEach(b => {
-        b.style.display = (b !== btn) ? '' : '';
-      });
-      const panel = document.getElementById(q + '-add');
-      const isOpen = panel.classList.toggle('open');
-      btn.style.display = isOpen ? 'none' : '';
-      if (isOpen) setTimeout(() => panel.querySelector('.inline-inp').focus(), 50);
-    });
-  });
-
-  function closePanel(q) {
-    const panel = document.getElementById(q + '-add');
-    panel.classList.remove('open');
-    panel.querySelector('.inline-inp').value = '';
-    panel.querySelector('.inline-note').value = '';
-    document.querySelector(`.add-task-btn[data-q="${q}"]`).style.display = '';
-  }
-
-  document.querySelectorAll('.inline-cancel').forEach(btn => {
-    btn.addEventListener('click', () => closePanel(btn.getAttribute('data-q')));
-  });
-
-  document.querySelectorAll('.inline-ok').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const q     = btn.getAttribute('data-q');
-      const panel = document.getElementById(q + '-add');
-      const inp   = panel.querySelector('.inline-inp');
-      const note  = panel.querySelector('.inline-note');
-      const sel   = panel.querySelector('.inline-sel');
-      if (!inp.value.trim()) { inp.focus(); return; }
-      addTask(q, inp.value, note.value, sel.value);
-      inp.value = ''; note.value = ''; inp.focus();
-    });
-  });
-
-  document.querySelectorAll('.inline-inp').forEach(inp => {
-    inp.addEventListener('keydown', e => {
-      const q = inp.getAttribute('data-q');
-      if (e.key === 'Enter') {
-        const panel = document.getElementById(q + '-add');
-        const note  = panel.querySelector('.inline-note');
-        const sel   = panel.querySelector('.inline-sel');
-        if (!inp.value.trim()) return;
-        addTask(q, inp.value, note.value, sel.value);
-        inp.value = ''; note.value = ''; inp.focus();
-      }
-      if (e.key === 'Escape') closePanel(q);
-    });
-  });
-
-  /* ── Drag and drop ── */
-  function makeDraggable(card, id) {
-    card.setAttribute('draggable', 'true');
-    card.addEventListener('dragstart', e => {
-      dragId = id;
-      card.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', id);
-    });
-    card.addEventListener('dragend', () => {
-      card.classList.remove('dragging');
-      dragId = null;
-    });
-  }
-
-  /* Touch drag (mobile) */
-  let touchDragId = null;
-  let touchClone  = null;
-  let touchOriginQ = null;
-
-  function makeTouchDraggable(card, id, q) {
-    card.addEventListener('touchstart', e => {
-      if (e.target.closest('button') || e.target.closest('.task-chk')) return;
-      touchDragId  = id;
-      touchOriginQ = q;
-      const rect = card.getBoundingClientRect();
-      touchClone = card.cloneNode(true);
-      touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.7;pointer-events:none;z-index:9999;border-radius:7px;`;
-      document.body.appendChild(touchClone);
-      card.style.opacity = '0.3';
-    }, { passive: true });
-
-    card.addEventListener('touchmove', e => {
-      if (!touchClone) return;
-      e.preventDefault();
-      const t = e.touches[0];
-      touchClone.style.left = (t.clientX - touchClone.offsetWidth / 2) + 'px';
-      touchClone.style.top  = (t.clientY - 30) + 'px';
-      document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
-      const el = document.elementFromPoint(t.clientX, t.clientY);
-      const quad = el ? el.closest('.quadrant') : null;
-      if (quad) quad.classList.add('drag-over');
-    }, { passive: false });
-
-    card.addEventListener('touchend', e => {
-      if (!touchClone) return;
-      const t = e.changedTouches[0];
-      const el = document.elementFromPoint(t.clientX, t.clientY);
-      const quad = el ? el.closest('.quadrant') : null;
-      document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
-      if (quad && quad.getAttribute('data-q') !== touchOriginQ) {
-        const targetQ = quad.getAttribute('data-q');
-        tasks = tasks.map(tk => tk.id === touchDragId ? { ...tk, q: targetQ } : tk);
-        save(); render();
-      }
-      touchClone.remove(); touchClone = null;
-      card.style.opacity = '';
-      touchDragId = null; touchOriginQ = null;
-    });
-  }
-
-  document.querySelectorAll('.quadrant').forEach(quad => {
-    quad.addEventListener('dragover',  e => { e.preventDefault(); quad.classList.add('drag-over'); });
-    quad.addEventListener('dragleave', e => {
-      if (!quad.contains(e.relatedTarget)) quad.classList.remove('drag-over');
-    });
-    quad.addEventListener('drop', e => {
-      e.preventDefault();
-      quad.classList.remove('drag-over');
-      const id = e.dataTransfer.getData('text/plain') || dragId;
-      if (!id) return;
-      const targetQ = quad.getAttribute('data-q');
-      tasks = tasks.map(t => t.id === id ? { ...t, q: targetQ } : t);
-      save(); render();
-    });
-  });
-
-  /* ── Event delegation — stable, attached once ── */
-  ['q1','q2','q3','q4'].forEach(q => {
-    document.getElementById(q + '-body').addEventListener('click', e => {
-      const el = e.target.closest('[data-action]'); if (!el) return;
-      const id = el.getAttribute('data-id');
-      const a  = el.getAttribute('data-action');
-      if      (a === 'toggle') toggleTask(id);
-      else if (a === 'edit')   openEdit(id);
-      else if (a === 'del')    deleteTask(id);
+function render(){
+  let total=0,done=0;
+  ['q1','q2','q3','q4'].forEach(q=>{
+    const qt=tasks.filter(t=>t.q===q);
+    const dc=qt.filter(t=>t.done).length;
+    total+=qt.length;done+=dc;
+    document.getElementById(q+'-count').textContent=qt.length?`${dc}/${qt.length}`:'0';
+    const body=document.getElementById(q+'-body');
+    if(!qt.length){
+      body.innerHTML=`<div class="q-empty"><span class="q-empty-icon">◻</span>Drop tasks here</div>`;
+      return;
+    }
+    body.innerHTML=qt.map(taskHTML).join('');
+    body.querySelectorAll('.task-card').forEach(card=>{
+      const id=card.getAttribute('data-id');
+      makeDraggable(card,id);
+      makeTouchDraggable(card,id,q);
     });
   });
+  document.getElementById('stats-text').innerHTML=
+    `<strong>${total-done}</strong> open · <strong>${done}</strong> done`;
+  applySearch();
+}
 
-  /* ── Render ── */
-  function taskHTML(t) {
-    return `<div class="task-card${t.done ? ' done-card' : ''}"
-                 data-id="${t.id}"
-                 data-text="${esc(t.text)}"
-                 data-note="${esc(t.note || '')}">
-      <div class="task-chk${t.done ? ' checked' : ''}" data-action="toggle" data-id="${t.id}"></div>
-      <div class="task-body">
-        <div class="task-text">${esc(t.text)}</div>
-        ${t.note ? `<div class="task-note">${esc(t.note)}</div>` : ''}
-        <span class="task-tag tt-${esc(t.tag || 'other')}">${esc(t.tag || 'other')}</span>
-      </div>
-      <div class="task-actions">
-        <button class="ta-btn"     data-action="edit" data-id="${t.id}" title="Edit">&#9998;</button>
-        <button class="ta-btn del" data-action="del"  data-id="${t.id}" title="Delete">&#10005;</button>
-      </div>
-    </div>`;
-  }
-
-  function render() {
-    const qs = ['q1','q2','q3','q4'];
-    let total = 0, done = 0;
-
-    qs.forEach(q => {
-      const qtasks = tasks.filter(t => t.q === q);
-      const body   = document.getElementById(q + '-body');
-      const doneCt = qtasks.filter(t => t.done).length;
-      total += qtasks.length;
-      done  += doneCt;
-
-      document.getElementById(q + '-count').textContent =
-        qtasks.length === 0 ? '' : `${doneCt}/${qtasks.length}`;
-
-      if (qtasks.length === 0) {
-        body.innerHTML = '<div class="q-empty">Drop tasks here</div>';
-        return;
-      }
-
-      body.innerHTML = qtasks.map(taskHTML).join('');
-
-      body.querySelectorAll('.task-card').forEach(card => {
-        const id = card.getAttribute('data-id');
-        makeDraggable(card, id);
-        makeTouchDraggable(card, id, q);
-      });
-    });
-
-    document.getElementById('stats-text').innerHTML =
-      `<strong>${total - done}</strong> open &nbsp;·&nbsp; <strong>${done}</strong> done &nbsp;·&nbsp; <strong>${total}</strong> total`;
-
-    applySearch();
-  }
-
-  render();
+render();
 })();
 </script>
 </body>
