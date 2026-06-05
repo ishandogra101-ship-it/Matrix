@@ -23,5 +23,5 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           POWER_AUTOMATE_URL: ${{ secrets.POWER_AUTOMATE_URL }}
-          APP_URL: https://ishandogra101-ship-it.github.io/Matrix/index.html
+          APP_URL: https://matrix-feb00.web.app
         run: node .github/scripts/send-reminders.js
