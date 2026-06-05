@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Matrix — Eisenhower Planner</title>
+  <link rel="stylesheet" href="matrix.css">
+</head>
+<body>
+
+<!-- ── Confirm dialog ── -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Delete task?</div>
+    <div class="confirm-msg">This cannot be undone.</div>
+    <div class="confirm-btns">
+      <button class="confirm-no"  id="confirm-no">Cancel</button>
+      <button class="confirm-del" id="confirm-yes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit modal ── -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <div class="modal-title">Edit task</div>
+    <div class="mf">
+      <label class="ml">Task</label>
+      <input class="mi" id="edit-text" type="text">
+    </div>
+    <div class="mf">
+      <label class="ml">Note</label>
+      <input class="mi" id="edit-note" type="text" placeholder="Optional note…">
+    </div>
+    <div class="mf">
+      <label class="ml">Category</label>
+      <select class="ms" id="edit-tag">
+        <option value="work">Work</option>
+        <option value="personal">Personal</option>
+        <option value="health">Health</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="mf">
+      <label class="ml">Quadrant</label>
+      <select class="ms" id="edit-q">
+        <option value="q1">Q1 — Do First (Urgent + Important)</option>
+        <option value="q2">Q2 — Schedule (Not Urgent + Important)</option>
+        <option value="q3">Q3 — Delegate (Urgent + Not Important)</option>
+        <option value="q4">Q4 — Eliminate (Not Urgent + Not Important)</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" id="edit-cancel">Cancel</button>
+      <button class="modal-save"   id="edit-save">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Top bar ── -->
+<header class="topbar">
+  <div class="brand">Matrix <em>Eisenhower Planner</em></div>
+
+  <div class="search-wrap">
+    <span class="search-icon">&#9906;</span>
+    <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
+  </div>
+
+  <div class="topbar-right">
+    <span class="stats-text" id="stats-text"></span>
+    <button class="clear-btn" id="clear-done-btn">Clear done</button>
+  </div>
+</header>
+
+<!-- ── Axis x labels ── -->
+<div class="axis-x-row">
+  <div class="axis-x-spacer"></div>
+  <div class="axis-x-label ax-urgent">⚡ Urgent</div>
+  <div class="axis-x-label">Not Urgent</div>
+</div>
+
+<!-- ── Matrix grid ── -->
+<main class="matrix-wrap">
+
+  <!-- Y axis -->
+  <div class="axis-y">
+    <div class="axis-y-label ay-important">Important</div>
+    <div class="axis-y-label">Not Important</div>
+  </div>
+
+  <!-- Q1: Urgent + Important -->
+  <div class="quadrant q1" id="q1" data-q="q1">
+    <div class="q-header">
+      <div class="q-label-block">
+        <div class="q-action">Do First</div>
+        <div class="q-desc">Urgent · Important</div>
+      </div>
+      <div class="q-count" id="q1-count"></div>
+    </div>
+    <div class="q-body" id="q1-body"></div>
+    <div class="q-footer">
+      <button class="add-task-btn" data-q="q1">+ Add task</button>
+      <div class="inline-add" id="q1-add">
+        <div class="inline-row">
+          <input class="inline-inp" data-q="q1" placeholder="Task name…" type="text">
+          <button class="inline-ok" data-q="q1">Add</button>
+          <button class="inline-cancel" data-q="q1">✕</button>
+        </div>
+        <input class="inline-note" data-q="q1" placeholder="Note (optional)…" type="text">
+        <div class="inline-selrow">
+          <select class="inline-sel" data-q="q1">
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="health">Health</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2: Not Urgent + Important -->
+  <div class="quadrant q2" id="q2" data-q="q2">
+    <div class="q-header">
+      <div class="q-label-block">
+        <div class="q-action">Schedule</div>
+        <div class="q-desc">Not Urgent · Important</div>
+      </div>
+      <div class="q-count" id="q2-count"></div>
+    </div>
+    <div class="q-body" id="q2-body"></div>
+    <div class="q-footer">
+      <button class="add-task-btn" data-q="q2">+ Add task</button>
+      <div class="inline-add" id="q2-add">
+        <div class="inline-row">
+          <input class="inline-inp" data-q="q2" placeholder="Task name…" type="text">
+          <button class="inline-ok" data-q="q2">Add</button>
+          <button class="inline-cancel" data-q="q2">✕</button>
+        </div>
+        <input class="inline-note" data-q="q2" placeholder="Note (optional)…" type="text">
+        <div class="inline-selrow">
+          <select class="inline-sel" data-q="q2">
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="health">Health</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3: Urgent + Not Important -->
+  <div class="quadrant q3" id="q3" data-q="q3">
+    <div class="q-header">
+      <div class="q-label-block">
+        <div class="q-action">Delegate</div>
+        <div class="q-desc">Urgent · Not Important</div>
+      </div>
+      <div class="q-count" id="q3-count"></div>
+    </div>
+    <div class="q-body" id="q3-body"></div>
+    <div class="q-footer">
+      <button class="add-task-btn" data-q="q3">+ Add task</button>
+      <div class="inline-add" id="q3-add">
+        <div class="inline-row">
+          <input class="inline-inp" data-q="q3" placeholder="Task name…" type="text">
+          <button class="inline-ok" data-q="q3">Add</button>
+          <button class="inline-cancel" data-q="q3">✕</button>
+        </div>
+        <input class="inline-note" data-q="q3" placeholder="Note (optional)…" type="text">
+        <div class="inline-selrow">
+          <select class="inline-sel" data-q="q3">
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="health">Health</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4: Not Urgent + Not Important -->
+  <div class="quadrant q4" id="q4" data-q="q4">
+    <div class="q-header">
+      <div class="q-label-block">
+        <div class="q-action">Eliminate</div>
+        <div class="q-desc">Not Urgent · Not Important</div>
+      </div>
+      <div class="q-count" id="q4-count"></div>
+    </div>
+    <div class="q-body" id="q4-body"></div>
+    <div class="q-footer">
+      <button class="add-task-btn" data-q="q4">+ Add task</button>
+      <div class="inline-add" id="q4-add">
+        <div class="inline-row">
+          <input class="inline-inp" data-q="q4" placeholder="Task name…" type="text">
+          <button class="inline-ok" data-q="q4">Add</button>
+          <button class="inline-cancel" data-q="q4">✕</button>
+        </div>
+        <input class="inline-note" data-q="q4" placeholder="Note (optional)…" type="text">
+        <div class="inline-selrow">
+          <select class="inline-sel" data-q="q4">
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="health">Health</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── State ── */
+  const STORE = 'eisenhower_v2';
+  let tasks    = load();
+  let editId   = null;
+  let deleteFn = null;
+  let dragId   = null;
+  let searchQ  = '';
+
+  function load() { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; } }
+  function save() { localStorage.setItem(STORE, JSON.stringify(tasks)); }
+  function uid()  { return Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  /* ── Confirm dialog ── */
+  const confirmOverlay = document.getElementById('confirm-overlay');
+  document.getElementById('confirm-yes').addEventListener('click', () => {
+    confirmOverlay.classList.remove('open');
+    if (deleteFn) { deleteFn(); deleteFn = null; }
+  });
+  document.getElementById('confirm-no').addEventListener('click', () => {
+    confirmOverlay.classList.remove('open'); deleteFn = null;
+  });
+  confirmOverlay.addEventListener('click', e => {
+    if (e.target === confirmOverlay) { confirmOverlay.classList.remove('open'); deleteFn = null; }
+  });
+  function confirmDelete(fn) { deleteFn = fn; confirmOverlay.classList.add('open'); }
+
+  /* ── Edit modal ── */
+  const editOverlay = document.getElementById('edit-overlay');
+  const editText    = document.getElementById('edit-text');
+  const editNote    = document.getElementById('edit-note');
+  const editTag     = document.getElementById('edit-tag');
+  const editQSel    = document.getElementById('edit-q');
+
+  document.getElementById('edit-cancel').addEventListener('click', () => {
+    editOverlay.classList.remove('open'); editId = null;
+  });
+  editOverlay.addEventListener('click', e => {
+    if (e.target === editOverlay) { editOverlay.classList.remove('open'); editId = null; }
+  });
+  document.getElementById('edit-save').addEventListener('click', () => {
+    const txt = editText.value.trim();
+    if (!txt || !editId) return;
+    tasks = tasks.map(t => t.id === editId
+      ? { ...t, text: txt, note: editNote.value.trim(), tag: editTag.value, q: editQSel.value }
+      : t);
+    save(); render(); editOverlay.classList.remove('open'); editId = null;
+  });
+  function openEdit(id) {
+    const t = tasks.find(t => t.id === id); if (!t) return;
+    editId = id;
+    editText.value  = t.text;
+    editNote.value  = t.note || '';
+    editTag.value   = t.tag  || 'work';
+    editQSel.value  = t.q;
+    editOverlay.classList.add('open');
+    setTimeout(() => editText.focus(), 100);
+  }
+
+  /* ── Task ops ── */
+  function addTask(q, text, note, tag) {
+    if (!text.trim()) return;
+    tasks.push({ id: uid(), q, text: text.trim(), note: (note || '').trim(), tag: tag || 'work', done: false, createdAt: Date.now() });
+    save(); render();
+  }
+  function toggleTask(id) {
+    tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+    save(); render();
+  }
+  function deleteTask(id) {
+    confirmDelete(() => { tasks = tasks.filter(t => t.id !== id); save(); render(); });
+  }
+
+  /* ── Clear done ── */
+  document.getElementById('clear-done-btn').addEventListener('click', () => {
+    if (!tasks.some(t => t.done)) return;
+    confirmDelete(() => { tasks = tasks.filter(t => !t.done); save(); render(); });
+  });
+
+  /* ── Search ── */
+  document.getElementById('search-inp').addEventListener('input', e => {
+    searchQ = e.target.value.trim().toLowerCase();
+    applySearch();
+  });
+
+  function applySearch() {
+    document.querySelectorAll('.task-card').forEach(card => {
+      if (!searchQ) {
+        card.classList.remove('search-hidden', 'search-match');
+        return;
+      }
+      const text = (card.getAttribute('data-text') || '').toLowerCase();
+      const note = (card.getAttribute('data-note') || '').toLowerCase();
+      if (text.includes(searchQ) || note.includes(searchQ)) {
+        card.classList.remove('search-hidden');
+        card.classList.add('search-match');
+      } else {
+        card.classList.add('search-hidden');
+        card.classList.remove('search-match');
+      }
+    });
+  }
+
+  /* ── Inline add panels ── */
+  document.querySelectorAll('.add-task-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = btn.getAttribute('data-q');
+      // close all others
+      document.querySelectorAll('.inline-add').forEach(el => {
+        if (el.id !== q + '-add') el.classList.remove('open');
+      });
+      document.querySelectorAll('.add-task-btn').forEach(b => {
+        b.style.display = (b !== btn) ? '' : '';
+      });
+      const panel = document.getElementById(q + '-add');
+      const isOpen = panel.classList.toggle('open');
+      btn.style.display = isOpen ? 'none' : '';
+      if (isOpen) setTimeout(() => panel.querySelector('.inline-inp').focus(), 50);
+    });
+  });
+
+  function closePanel(q) {
+    const panel = document.getElementById(q + '-add');
+    panel.classList.remove('open');
+    panel.querySelector('.inline-inp').value = '';
+    panel.querySelector('.inline-note').value = '';
+    document.querySelector(`.add-task-btn[data-q="${q}"]`).style.display = '';
+  }
+
+  document.querySelectorAll('.inline-cancel').forEach(btn => {
+    btn.addEventListener('click', () => closePanel(btn.getAttribute('data-q')));
+  });
+
+  document.querySelectorAll('.inline-ok').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q     = btn.getAttribute('data-q');
+      const panel = document.getElementById(q + '-add');
+      const inp   = panel.querySelector('.inline-inp');
+      const note  = panel.querySelector('.inline-note');
+      const sel   = panel.querySelector('.inline-sel');
+      if (!inp.value.trim()) { inp.focus(); return; }
+      addTask(q, inp.value, note.value, sel.value);
+      inp.value = ''; note.value = ''; inp.focus();
+    });
+  });
+
+  document.querySelectorAll('.inline-inp').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      const q = inp.getAttribute('data-q');
+      if (e.key === 'Enter') {
+        const panel = document.getElementById(q + '-add');
+        const note  = panel.querySelector('.inline-note');
+        const sel   = panel.querySelector('.inline-sel');
+        if (!inp.value.trim()) return;
+        addTask(q, inp.value, note.value, sel.value);
+        inp.value = ''; note.value = ''; inp.focus();
+      }
+      if (e.key === 'Escape') closePanel(q);
+    });
+  });
+
+  /* ── Drag and drop ── */
+  function makeDraggable(card, id) {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      dragId = id;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', id);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      dragId = null;
+    });
+  }
+
+  /* Touch drag (mobile) */
+  let touchDragId = null;
+  let touchClone  = null;
+  let touchOriginQ = null;
+
+  function makeTouchDraggable(card, id, q) {
+    card.addEventListener('touchstart', e => {
+      if (e.target.closest('button') || e.target.closest('.task-chk')) return;
+      touchDragId  = id;
+      touchOriginQ = q;
+      const rect = card.getBoundingClientRect();
+      touchClone = card.cloneNode(true);
+      touchClone.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;opacity:0.7;pointer-events:none;z-index:9999;border-radius:7px;`;
+      document.body.appendChild(touchClone);
+      card.style.opacity = '0.3';
+    }, { passive: true });
+
+    card.addEventListener('touchmove', e => {
+      if (!touchClone) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      touchClone.style.left = (t.clientX - touchClone.offsetWidth / 2) + 'px';
+      touchClone.style.top  = (t.clientY - 30) + 'px';
+      document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const quad = el ? el.closest('.quadrant') : null;
+      if (quad) quad.classList.add('drag-over');
+    }, { passive: false });
+
+    card.addEventListener('touchend', e => {
+      if (!touchClone) return;
+      const t = e.changedTouches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      const quad = el ? el.closest('.quadrant') : null;
+      document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
+      if (quad && quad.getAttribute('data-q') !== touchOriginQ) {
+        const targetQ = quad.getAttribute('data-q');
+        tasks = tasks.map(tk => tk.id === touchDragId ? { ...tk, q: targetQ } : tk);
+        save(); render();
+      }
+      touchClone.remove(); touchClone = null;
+      card.style.opacity = '';
+      touchDragId = null; touchOriginQ = null;
+    });
+  }
+
+  document.querySelectorAll('.quadrant').forEach(quad => {
+    quad.addEventListener('dragover',  e => { e.preventDefault(); quad.classList.add('drag-over'); });
+    quad.addEventListener('dragleave', e => {
+      if (!quad.contains(e.relatedTarget)) quad.classList.remove('drag-over');
+    });
+    quad.addEventListener('drop', e => {
+      e.preventDefault();
+      quad.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain') || dragId;
+      if (!id) return;
+      const targetQ = quad.getAttribute('data-q');
+      tasks = tasks.map(t => t.id === id ? { ...t, q: targetQ } : t);
+      save(); render();
+    });
+  });
+
+  /* ── Event delegation — stable, attached once ── */
+  ['q1','q2','q3','q4'].forEach(q => {
+    document.getElementById(q + '-body').addEventListener('click', e => {
+      const el = e.target.closest('[data-action]'); if (!el) return;
+      const id = el.getAttribute('data-id');
+      const a  = el.getAttribute('data-action');
+      if      (a === 'toggle') toggleTask(id);
+      else if (a === 'edit')   openEdit(id);
+      else if (a === 'del')    deleteTask(id);
+    });
+  });
+
+  /* ── Render ── */
+  function taskHTML(t) {
+    return `<div class="task-card${t.done ? ' done-card' : ''}"
+                 data-id="${t.id}"
+                 data-text="${esc(t.text)}"
+                 data-note="${esc(t.note || '')}">
+      <div class="task-chk${t.done ? ' checked' : ''}" data-action="toggle" data-id="${t.id}"></div>
+      <div class="task-body">
+        <div class="task-text">${esc(t.text)}</div>
+        ${t.note ? `<div class="task-note">${esc(t.note)}</div>` : ''}
+        <span class="task-tag tt-${esc(t.tag || 'other')}">${esc(t.tag || 'other')}</span>
+      </div>
+      <div class="task-actions">
+        <button class="ta-btn"     data-action="edit" data-id="${t.id}" title="Edit">&#9998;</button>
+        <button class="ta-btn del" data-action="del"  data-id="${t.id}" title="Delete">&#10005;</button>
+      </div>
+    </div>`;
+  }
+
+  function render() {
+    const qs = ['q1','q2','q3','q4'];
+    let total = 0, done = 0;
+
+    qs.forEach(q => {
+      const qtasks = tasks.filter(t => t.q === q);
+      const body   = document.getElementById(q + '-body');
+      const doneCt = qtasks.filter(t => t.done).length;
+      total += qtasks.length;
+      done  += doneCt;
+
+      document.getElementById(q + '-count').textContent =
+        qtasks.length === 0 ? '' : `${doneCt}/${qtasks.length}`;
+
+      if (qtasks.length === 0) {
+        body.innerHTML = '<div class="q-empty">Drop tasks here</div>';
+        return;
+      }
+
+      body.innerHTML = qtasks.map(taskHTML).join('');
+
+      body.querySelectorAll('.task-card').forEach(card => {
+        const id = card.getAttribute('data-id');
+        makeDraggable(card, id);
+        makeTouchDraggable(card, id, q);
+      });
+    });
+
+    document.getElementById('stats-text').innerHTML =
+      `<strong>${total - done}</strong> open &nbsp;·&nbsp; <strong>${done}</strong> done &nbsp;·&nbsp; <strong>${total}</strong> total`;
+
+    applySearch();
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
