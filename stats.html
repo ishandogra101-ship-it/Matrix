@@ -42,9 +42,15 @@
   <!-- Main area -->
   <div class="main-area">
     <header class="topbar">
-      <div style="font-family:'Inter',sans-serif;font-size:16px;font-weight:700;color:var(--ink);">Statistics</div>
+      <a href="index.html" class="stats-back-btn" title="Back to Matrix">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L4 8l6 5"/></svg>
+        <span>Matrix</span>
+      </a>
+      <div class="stats-page-title">Statistics</div>
       <div class="topbar-right">
-        <span class="stats-text" id="topbar-info"></span>
+        <button class="stats-signout-btn" id="sb-logout" title="Sign out">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5.5"/><path d="M10.5 5.5L13.5 8l-3 2.5"/><path d="M13.5 8H6.5"/></svg>
+        </button>
       </div>
     </header>
 
@@ -115,8 +121,8 @@ import { getFirestore, collection, getDocs,
 if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
   document.querySelector('.main-area').innerHTML = `
     <div style="padding:40px;font-family:inherit;">
-      <h2 style="font-family:'Space Grotesk',sans-serif;margin-bottom:12px;">Firebase setup required</h2>
-      <p style="color:#73769e;">Open <code style="background:#eef0fb;padding:2px 8px;border-radius:5px;">firebase-config.js</code> and fill in your Firebase credentials.</p>
+      <h2 style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;margin-bottom:12px;color:#0D1526;">Firebase setup required</h2>
+      <p style="color:#6B7A99;">Open <code style="background:#F0F3F8;padding:2px 8px;border-radius:5px;">firebase-config.js</code> and fill in your Firebase credentials.</p>
     </div>`;
   throw new Error('Firebase not configured');
 }
@@ -127,7 +133,8 @@ const db   = getFirestore(app);
 
 onAuthStateChanged(auth, user => {
   if (!user) { window.location.href = 'login.html'; return; }
-  document.getElementById('sb-user').textContent = user.email.split('@')[0];
+  const sbUser = document.getElementById('sb-user');
+  if (sbUser) sbUser.textContent = user.email.split('@')[0];
   loadAndRender(user);
 });
 
@@ -142,7 +149,7 @@ const DEFAULT_CATEGORIES = [
   {id:'health',   label:'Health',   bg:'#d6f7e8', color:'#047857'},
   {id:'other',    label:'Other',    bg:'#f4f5fc', color:'#73769e'},
 ];
-const Q_COLORS = { q1:'#f43f5e', q2:'#5b5bf5', q3:'#10b981', q4:'#a3a7c9' };
+const Q_COLORS = { q1:'#C8102E', q2:'#00205B', q3:'#00875A', q4:'#9BAABB' };
 const Q_LABELS = { q1:'Q1 Do First', q2:'Q2 Schedule', q3:'Q3 Delegate', q4:'Q4 Eliminate' };
 
 let charts = {};
@@ -162,9 +169,6 @@ async function loadAndRender(user) {
     document.getElementById('topbar-info').textContent = 'Failed to load data';
     return;
   }
-
-  document.getElementById('topbar-info').textContent =
-    `${tasks.filter(t => !t.done).length} open · ${tasks.filter(t => t.done).length} done`;
 
   renderSummary(tasks);
   renderCharts(tasks, categories);
@@ -206,7 +210,7 @@ function renderCharts(tasks, categories) {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { labels: { font: { family: 'Plus Jakarta Sans', size: 11 }, boxWidth: 12, padding: 10 } },
+      legend: { labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12, padding: 10 } },
     },
     ...extra,
   });
@@ -238,8 +242,8 @@ function renderCharts(tasks, categories) {
       data: {
         labels,
         datasets: [
-          { label: 'Created',   data: created,   borderColor:'#5b5bf5', backgroundColor:'rgba(91,91,245,.12)',  tension:.35, fill:true, pointRadius:2, borderWidth:2 },
-          { label: 'Completed', data: completed, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.10)', tension:.35, fill:true, pointRadius:2, borderWidth:2 },
+          { label: 'Created',   data: created,   borderColor:'#00205B', backgroundColor:'rgba(0,32,91,.08)',    tension:.35, fill:true, pointRadius:2, borderWidth:2 },
+          { label: 'Completed', data: completed, borderColor:'#00875A', backgroundColor:'rgba(0,135,90,.08)',  tension:.35, fill:true, pointRadius:2, borderWidth:2 },
         ],
       },
       options: baseOpts({
