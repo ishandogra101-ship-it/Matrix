@@ -116,8 +116,8 @@
             <div class="chart-card-title">Open tasks by quadrant</div>
             <div class="chart-card-sub">Distribution of remaining work</div>
           </div>
-          <div class="chart-wrap" style="height:200px;display:flex;align-items:center;justify-content:center;">
-            <canvas id="chart-quadrant" style="max-width:200px;max-height:200px;"></canvas>
+          <div class="chart-wrap" style="height:200px;">
+            <canvas id="chart-quadrant"></canvas>
           </div>
         </div>
         <div class="chart-card">
@@ -309,7 +309,16 @@ function renderCharts(tasks, categories) {
       options: baseOpts({
         cutout: '65%',
         plugins: {
-          legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12, padding: 8 } },
+          legend: {
+            position: 'right',
+            labels: {
+              font: { family: 'Inter', size: 11 },
+              usePointStyle: true,
+              pointStyle: 'circle',
+              boxWidth: 7,
+              padding: 14,
+            },
+          },
         },
       }),
     });
