@@ -14,7 +14,7 @@
 <div class="login-page">
   <div class="login-card">
     <div class="login-brand">
-      <div class="brand-icon">⊞</div>
+      <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
       <div class="login-brand-name">Matrix</div>
     </div>
 
@@ -95,7 +95,7 @@ import { getFirestore, doc, setDoc }                      from 'https://www.gsta
 
 if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
   document.querySelector('.login-card').innerHTML = `
-    <div class="login-brand"><div class="brand-icon">⊞</div><div class="login-brand-name">Matrix</div></div>
+    <div class="login-brand"><div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div><div class="login-brand-name">Matrix</div></div>
     <div class="login-title" style="font-size:17px;">Firebase setup required</div>
     <div class="login-sub">Open <code style="background:var(--paper2);padding:2px 6px;border-radius:5px;font-size:12px;">firebase-config.js</code> and fill in your Firebase project credentials. See the comments in that file for step-by-step instructions.</div>`;
   throw new Error('Firebase not configured');

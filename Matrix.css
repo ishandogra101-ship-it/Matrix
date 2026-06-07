@@ -64,8 +64,9 @@ body::before{
   width:28px;height:28px;border-radius:9px;
   background:rgba(255,255,255,.15);
   display:grid;place-items:center;
-  font-size:13px;flex-shrink:0;color:white;
+  flex-shrink:0;
 }
+.brand-icon svg,.sb-icon svg,.q-icon svg,.cats-btn svg,.ta-btn svg{display:block;}
 .sb-name{
   font-family:'Inter',sans-serif;font-weight:700;font-size:17px;
   color:#ffffff;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;
@@ -83,7 +84,7 @@ body::before{
 }
 .sb-link:hover{background:rgba(255,255,255,.1);color:#ffffff;}
 .sb-link.active{background:rgba(255,255,255,.16);color:#ffffff;border-left-color:#ffffff;padding-left:7px;}
-.sb-link .sb-icon{font-size:16px;flex-shrink:0;}
+.sb-link .sb-icon{flex-shrink:0;display:flex;align-items:center;}
 .sb-footer{
   padding:12px 8px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0;
   display:flex;flex-direction:column;gap:6px;
@@ -206,7 +207,7 @@ body::before{
 
 .q-icon{
   width:30px;height:30px;border-radius:9px;
-  display:grid;place-items:center;font-size:14px;flex-shrink:0;
+  display:grid;place-items:center;flex-shrink:0;
 }
 .q1 .q-icon{background:var(--q1s);}
 .q2 .q-icon{background:var(--q2s);}
@@ -565,8 +566,8 @@ body::before{
   margin-bottom:28px;justify-content:center;
 }
 .login-brand .brand-icon{
-  width:36px;height:36px;border-radius:12px;font-size:16px;
-  background:var(--primary);box-shadow:0 4px 12px rgba(0,32,91,.3);color:white;
+  width:36px;height:36px;border-radius:12px;
+  background:var(--primary);box-shadow:0 4px 12px rgba(0,32,91,.3);
 }
 .login-brand-name{
   font-family:'Inter',sans-serif;font-weight:700;font-size:22px;
@@ -702,7 +703,7 @@ body::before{
     font-family:inherit;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
     cursor:pointer;padding:6px 0;transition:color var(--ease);-webkit-tap-highlight-color:transparent;
   }
-  .tab-btn .tab-icon{font-size:19px;line-height:1;}
+  .tab-btn .tab-icon{display:flex;align-items:center;justify-content:center;}
   .tab-btn.tq1.active{color:var(--rust);}
   .tab-btn.tq2.active{color:var(--primary);}
   .tab-btn.tq3.active{color:var(--green);}
