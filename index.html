@@ -46,6 +46,10 @@
         <option value="q4">Q4 — Eliminate (Not Urgent + Not Important)</option>
       </select>
     </div>
+    <div class="mf" id="edit-assignee-field">
+      <label class="ml">Delegate to</label>
+      <select class="ms" id="edit-assignee"></select>
+    </div>
     <div class="modal-btns">
       <button class="modal-cancel" id="edit-cancel">Cancel</button>
       <button class="modal-save"   id="edit-save">Save changes</button>
@@ -113,6 +117,19 @@
   </div>
 </div>
 
+<!-- People management modal -->
+<div class="modal-overlay" id="people-overlay">
+  <div class="modal">
+    <div class="modal-title">Manage people</div>
+    <div class="modal-sub">People you can delegate tasks to. Use “Self” for tasks you’re keeping.</div>
+    <div id="people-list"></div>
+    <button class="add-cat-btn" id="add-person-btn">+ Add person</button>
+    <div class="modal-btns">
+      <button class="modal-save" id="people-close">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- App layout -->
 <div class="app-layout">
 
@@ -138,6 +155,7 @@
       <div class="topbar-right">
         <span class="stats-text" id="stats-text"></span>
         <button class="nav-icon-btn" id="sb-reminder-btn" title="Reminders"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.79 2 4 3.79 4 6v3.5L2.5 11h11L12 9.5V6C12 3.79 10.21 2 8 2z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg></button>
+        <button class="cats-btn" id="people-btn" title="Manage people"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.4"/><path d="M2 13c0-2.2 1.8-3.6 4-3.6s4 1.4 4 3.6"/><path d="M10.5 3.2a2.4 2.4 0 010 4.2"/><path d="M11.5 9.6c1.7.2 3 1.5 3 3.4"/></svg></button>
         <button class="cats-btn" id="cats-btn" title="Manage categories"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5.8 1h2.4l.28 1.38c.32.12.62.28.9.48l1.32-.52 1.2 2.08-.98.8c.05.26.08.52.08.78s-.03.52-.08.78l.98.8-1.2 2.08-1.32-.52c-.28.2-.58.36-.9.48L8.2 11H5.8l-.28-1.38a4 4 0 01-.9-.48l-1.32.52L2.1 7.58l.98-.8A4.1 4.1 0 013 6c0-.26.03-.52.08-.78l-.98-.8 1.2-2.08 1.32.52c.28-.2.58-.36.9-.48L5.8 1zM7 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg></button>
         <button class="clear-btn" id="clear-done-btn">Clear done</button>
         <span class="nav-user" id="sb-user"></span>
@@ -237,7 +255,10 @@
               <button class="inline-cancel" data-q="q3">✕</button>
             </div>
             <input class="inline-note" data-q="q3" placeholder="Note (optional)…" type="text">
-            <div class="inline-selrow"><select class="inline-sel" data-q="q3"></select></div>
+            <div class="inline-selrow">
+              <select class="inline-sel" data-q="q3"></select>
+              <select class="inline-assignee" data-q="q3"></select>
+            </div>
           </div>
         </div>
       </div>
@@ -334,8 +355,13 @@ const DEFAULT_CATEGORIES = [
   {id:'other',    label:'Other',    bg:'#f4f5fc', color:'#73769e'},
 ];
 
+/* People you can delegate to. "Self" is always available implicitly. */
+const PERSON_COLORS = ['#00205B','#C8102E','#00875A','#B45309','#5B21B6','#0369A1','#A21CAF','#0F766E'];
+const SELF_PERSON   = { id: 'self', name: 'Self', color: '#00205B' };
+
 let tasks       = [];
 let categories  = [...DEFAULT_CATEGORIES];
+let people      = [];
 let settings    = { reminderEnabled: false, reminderFrequencyHours: 24, lastReminderSentAt: 0 };
 let currentUser = null;
 let editId      = null;
@@ -343,7 +369,7 @@ let deleteFn    = null;
 let dragId      = null;
 let searchQ     = '';
 let activeTab   = 'q1';
-let tasksRef, categoriesRef, settingsRef, unsubTasks;
+let tasksRef, categoriesRef, peopleRef, settingsRef, unsubTasks;
 
 function genId() { return Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
 function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -385,11 +411,12 @@ async function initApp(user) {
   currentUser   = user;
   tasksRef      = collection(db, 'users', user.uid, 'tasks');
   categoriesRef = doc(db, 'users', user.uid, 'categories', 'list');
+  peopleRef     = doc(db, 'users', user.uid, 'people', 'list');
   settingsRef   = doc(db, 'users', user.uid, 'settings', 'prefs');
 
   document.getElementById('sb-user').textContent = user.email.split('@')[0];
 
-  await Promise.all([loadCategories(), loadSettings()]);
+  await Promise.all([loadCategories(), loadPeople(), loadSettings()]);
   refreshAllSelects();
 
   let firstSnap = true;
@@ -412,6 +439,58 @@ async function loadCategories() {
 async function saveCategories() {
   try { await setDoc(categoriesRef, { items: categories }); }
   catch { showToast('Failed to save categories'); }
+}
+
+/* ── Firestore: people ── */
+async function loadPeople() {
+  try {
+    const snap = await getDoc(peopleRef);
+    if (snap.exists() && Array.isArray(snap.data().items)) people = snap.data().items;
+  } catch { /* none yet */ }
+}
+async function savePeople() {
+  try { await setDoc(peopleRef, { items: people }); }
+  catch { showToast('Failed to save people'); }
+}
+
+/* ── Person helpers ── */
+function getPerson(id) {
+  if (!id) return null;
+  if (id === 'self') return SELF_PERSON;
+  return people.find(p => p.id === id) || null;
+}
+function initials(name) {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+function buildPeopleOptions(selectedId) {
+  const sel = selectedId || '';
+  let html  = `<option value=""${sel === '' ? ' selected' : ''}>Unassigned</option>`;
+  html     += `<option value="self"${sel === 'self' ? ' selected' : ''}>Self</option>`;
+  people.forEach(p => {
+    html += `<option value="${esc(p.id)}"${p.id === sel ? ' selected' : ''}>${esc(p.name)}</option>`;
+  });
+  html += `<option value="__add__">＋ Add new person…</option>`;
+  return html;
+}
+function refreshAssigneeSelects() {
+  document.querySelectorAll('.inline-assignee').forEach(sel => {
+    const cur = sel.value === '__add__' ? '' : sel.value;
+    sel.innerHTML = buildPeopleOptions(cur);
+  });
+}
+/* Small avatar + name chip shown on delegated cards. */
+function personChip(id) {
+  const p = getPerson(id);
+  if (!p) return '';
+  const face = p.id === 'self'
+    ? `<svg width="9" height="9" viewBox="0 0 12 12" fill="white"><circle cx="6" cy="4" r="2.2"/><path d="M1.8 11c0-2.3 1.9-3.5 4.2-3.5s4.2 1.2 4.2 3.5z"/></svg>`
+    : esc(initials(p.name));
+  return `<span class="assignee-chip" title="Delegated to ${esc(p.name)}">
+            <span class="assignee-av" style="background:${p.color || '#00205B'}">${face}</span>
+            <span class="assignee-name">${esc(p.name)}</span>
+          </span>`;
 }
 
 /* ── Firestore: settings ── */
@@ -455,15 +534,35 @@ document.getElementById('edit-cancel').addEventListener('click', () => {
 editOverlay.addEventListener('click', e => {
   if (e.target === editOverlay) { editOverlay.classList.remove('open'); editId = null; }
 });
+const editQSel        = document.getElementById('edit-q');
+const editAssigneeSel = document.getElementById('edit-assignee');
+const editAssigneeFld = document.getElementById('edit-assignee-field');
+
+/* The Delegate-to field only applies to Q3. */
+function toggleEditAssignee() {
+  editAssigneeFld.style.display = editQSel.value === 'q3' ? '' : 'none';
+}
+function rebuildEditAssignee() {
+  const cur = editAssigneeSel.value === '__add__' ? '' : editAssigneeSel.value;
+  editAssigneeSel.innerHTML = buildPeopleOptions(cur);
+}
+editQSel.addEventListener('change', toggleEditAssignee);
+editAssigneeSel.addEventListener('change', () => handleAssigneePick(editAssigneeSel));
+
 document.getElementById('edit-save').addEventListener('click', async () => {
   const txt = document.getElementById('edit-text').value.trim();
   if (!txt || !editId) return;
+  const q = editQSel.value;
+  let assignee = editAssigneeSel.value;
+  if (assignee === '__add__') assignee = '';
+  if (q !== 'q3') assignee = '';   // delegation only meaningful in Q3
   try {
     await updateDoc(doc(tasksRef, editId), {
       text: txt,
       note: document.getElementById('edit-note').value.trim(),
       tag:  document.getElementById('edit-tag').value,
-      q:    document.getElementById('edit-q').value,
+      q,
+      assignee,
     });
     editOverlay.classList.remove('open'); editId = null;
   } catch { showToast('Failed to save'); }
@@ -474,7 +573,9 @@ function openEdit(id) {
   document.getElementById('edit-text').value = t.text;
   document.getElementById('edit-note').value = t.note || '';
   document.getElementById('edit-tag').innerHTML = buildCatOptions(t.tag || 'work');
-  document.getElementById('edit-q').value = t.q;
+  editQSel.value = t.q;
+  editAssigneeSel.innerHTML = buildPeopleOptions(t.assignee || '');
+  toggleEditAssignee();
   editOverlay.classList.add('open');
   setTimeout(() => document.getElementById('edit-text').focus(), 100);
 }
@@ -677,6 +778,90 @@ function renderCatModal() {
   });
 }
 
+/* ── People modal ── */
+const peopleOverlay = document.getElementById('people-overlay');
+document.getElementById('people-btn').addEventListener('click', () => { renderPeopleModal(); peopleOverlay.classList.add('open'); });
+async function closePeopleModal() {
+  // Commit any in-progress name edits, then drop unnamed entries.
+  document.querySelectorAll('.person-name-inp').forEach(inp => {
+    const idx = +inp.getAttribute('data-idx');
+    if (people[idx]) people[idx].name = inp.value.trim();
+  });
+  people = people.filter(p => p.name);
+  await savePeople();
+  peopleOverlay.classList.remove('open');
+  refreshAssigneeSelects();
+  rebuildEditAssignee();
+  render();
+}
+document.getElementById('people-close').addEventListener('click', closePeopleModal);
+peopleOverlay.addEventListener('click', e => { if (e.target === peopleOverlay) closePeopleModal(); });
+document.getElementById('add-person-btn').addEventListener('click', () => {
+  const color = PERSON_COLORS[people.length % PERSON_COLORS.length];
+  people.push({ id: 'person_' + genId(), name: '', color });
+  renderPeopleModal();
+  const inputs = document.querySelectorAll('.person-name-inp');
+  const last = inputs[inputs.length - 1];
+  if (last) last.focus();
+});
+
+function renderPeopleModal() {
+  const list = document.getElementById('people-list');
+  if (!people.length) {
+    list.innerHTML = `<div class="people-empty">No people yet. Add someone to delegate tasks to.</div>`;
+  } else {
+    list.innerHTML = people.map((p, i) => `
+      <div class="cat-row" data-idx="${i}">
+        <button class="person-swatch" style="background:${p.color}" data-idx="${i}" title="Cycle colour">${p.name ? esc(initials(p.name)) : ''}</button>
+        <input class="cat-label-inp person-name-inp" value="${esc(p.name)}" placeholder="Name…" data-idx="${i}">
+        <div class="cat-err" id="person-err-${i}">In use — reassign tasks first.</div>
+        <button class="cat-del-btn" data-idx="${i}" title="Delete">✕</button>
+      </div>`).join('');
+  }
+
+  list.querySelectorAll('.person-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.getAttribute('data-idx');
+      const cur = PERSON_COLORS.indexOf(people[idx].color);
+      people[idx].color = PERSON_COLORS[(cur + 1) % PERSON_COLORS.length];
+      renderPeopleModal();
+    });
+  });
+  list.querySelectorAll('.person-name-inp').forEach(inp => {
+    const commit = () => {
+      const idx = +inp.getAttribute('data-idx');
+      people[idx].name = inp.value.trim();
+    };
+    inp.addEventListener('input', () => {
+      const idx = +inp.getAttribute('data-idx');
+      const sw  = list.querySelector(`.person-swatch[data-idx="${idx}"]`);
+      if (sw) sw.textContent = inp.value.trim() ? initials(inp.value) : '';
+    });
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+  });
+  list.querySelectorAll('.cat-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.getAttribute('data-idx');
+      if (tasks.some(t => t.assignee === people[idx].id)) {
+        const err = document.getElementById('person-err-' + idx);
+        if (err) err.style.display = 'block';
+        return;
+      }
+      people.splice(idx, 1); renderPeopleModal();
+    });
+  });
+}
+
+/* Open the people modal from an assignee <select>'s "Add new person" option. */
+function handleAssigneePick(sel, onPicked) {
+  if (sel.value === '__add__') {
+    sel.value = onPicked ? onPicked() : '';
+    renderPeopleModal();
+    peopleOverlay.classList.add('open');
+  }
+}
+
 /* ── Maximize on q-icon click ── */
 document.querySelectorAll('.q-icon').forEach(icon => {
   icon.addEventListener('click', () => {
@@ -703,12 +888,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ── Task operations (Firestore) ── */
-async function addTask(q, text, note, tag) {
+async function addTask(q, text, note, tag, assignee) {
   if (!text.trim() || !currentUser) return;
   const id = genId();
   const t = {
     q, text: text.trim(), note: (note || '').trim(),
     tag: tag || categories[0].id, done: false,
+    assignee: (q === 'q3' && assignee && assignee !== '__add__') ? assignee : '',
     createdAt: Date.now(), completedAt: null,
   };
   try {
@@ -769,6 +955,8 @@ document.querySelectorAll('.add-task-btn').forEach(btn => {
     btn.style.display = isOpen ? 'none' : '';
     if (isOpen) {
       panel.querySelector('.inline-sel').innerHTML = buildCatOptions('');
+      const asg = panel.querySelector('.inline-assignee');
+      if (asg) asg.innerHTML = buildPeopleOptions('');
       setTimeout(() => panel.querySelector('.inline-inp').focus(), 50);
     }
   });
@@ -792,13 +980,17 @@ function submitInlineAdd(q) {
   const inp   = panel.querySelector('.inline-inp');
   const note  = panel.querySelector('.inline-note');
   const sel   = panel.querySelector('.inline-sel');
+  const asg   = panel.querySelector('.inline-assignee');
   if (!inp.value.trim()) { inp.focus(); return; }
-  addTask(q, inp.value, note.value, sel.value);
+  addTask(q, inp.value, note.value, sel.value, asg ? asg.value : '');
   inp.value = ''; note.value = ''; inp.focus();
 }
 
 document.querySelectorAll('.inline-ok').forEach(btn => {
   btn.addEventListener('click', () => submitInlineAdd(btn.getAttribute('data-q')));
+});
+document.querySelectorAll('.inline-assignee').forEach(sel => {
+  sel.addEventListener('change', () => handleAssigneePick(sel));
 });
 document.querySelectorAll('.inline-inp').forEach(inp => {
   inp.addEventListener('keydown', e => {
@@ -900,6 +1092,7 @@ function taskHTML(t, isQ1) {
     <div class="task-body">
       <div class="task-text">${esc(t.text)}</div>
       <div class="task-meta">
+        ${t.q === 'q3' ? personChip(t.assignee) : ''}
         <span class="task-tag" style="${tagStyle(t.tag||'other')}">${esc(getCatLabel(t.tag||'other'))}</span>
         ${dateStr}
       </div>

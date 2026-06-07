@@ -294,6 +294,20 @@ body::before{
 .done-date{color:var(--greenD);}
 .done-card .task-meta{opacity:.6;}
 
+/* Delegated-to chip (Q3) */
+.assignee-chip{
+  display:inline-flex;align-items:center;gap:4px;flex-shrink:0;
+  padding:1px 7px 1px 2px;border-radius:var(--rpill);
+  background:var(--surface3);border:1px solid var(--border);
+}
+.assignee-av{
+  width:15px;height:15px;border-radius:50%;flex-shrink:0;
+  display:grid;place-items:center;
+  font-size:8px;font-weight:700;color:#fff;line-height:1;letter-spacing:0;
+}
+.assignee-name{font-size:10px;font-weight:600;color:var(--ink2);max-width:84px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
 .task-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity var(--ease);}
 .task-card:hover .task-actions{opacity:1;}
 @media(hover:none){.task-actions{opacity:.6;}}
@@ -337,13 +351,13 @@ body::before{
 .inline-note:focus{border-color:var(--primary);}
 .inline-note::placeholder{color:var(--ink4);}
 .inline-selrow{display:flex;gap:5px;align-items:center;}
-.inline-sel{
+.inline-sel,.inline-assignee{
   font-family:inherit;font-size:12px;font-weight:600;
   background:var(--surface2);border:1.5px solid var(--border);
   border-radius:var(--r8);padding:0 8px;color:var(--ink2);
-  cursor:pointer;outline:none;height:32px;flex:1;transition:border-color var(--ease);
+  cursor:pointer;outline:none;height:32px;flex:1;min-width:0;transition:border-color var(--ease);
 }
-.inline-sel:focus{border-color:var(--primary);}
+.inline-sel:focus,.inline-assignee:focus{border-color:var(--primary);}
 .inline-ok{
   font-family:inherit;font-size:12px;font-weight:700;
   padding:0 14px;height:32px;border-radius:var(--r8);
@@ -385,6 +399,10 @@ body::before{
 .modal-title{
   font-family:'Inter',sans-serif;font-size:18px;font-weight:700;
   letter-spacing:-.02em;color:var(--ink);margin-bottom:18px;
+}
+.modal-sub{
+  font-size:12.5px;color:var(--ink3);line-height:1.5;
+  margin-top:-12px;margin-bottom:16px;
 }
 .mf{margin-bottom:12px;}
 .ml{
@@ -453,6 +471,18 @@ body::before{
   cursor:pointer;flex-shrink:0;transition:transform var(--ease);
 }
 .cat-swatch:hover{transform:scale(1.12);}
+/* Person avatar swatch in the people modal */
+.person-swatch{
+  width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+  display:grid;place-items:center;color:#fff;
+  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0;
+  transition:transform var(--ease);
+}
+.person-swatch:hover{transform:scale(1.1);}
+.people-empty{
+  font-size:12.5px;color:var(--ink4);text-align:center;
+  padding:14px 8px;margin-bottom:8px;
+}
 .cat-label-inp{
   flex:1;font-family:inherit;font-size:13px;font-weight:500;
   padding:5px 9px;border:1.5px solid var(--border);border-radius:var(--r8);
