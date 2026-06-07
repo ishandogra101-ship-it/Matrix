@@ -676,6 +676,17 @@ body::before{
   color:var(--ink3);cursor:pointer;transition:all var(--ease);
 }
 .customize-btn:hover{background:var(--primaryS);color:var(--primary);border-color:var(--primary);}
+.export-btn{
+  display:flex;align-items:center;gap:6px;
+  font-family:inherit;font-size:12.5px;font-weight:600;
+  padding:6px 14px;border-radius:var(--rpill);
+  border:1.5px solid var(--primary);background:var(--primary);
+  color:#fff;cursor:pointer;transition:all var(--ease);
+  box-shadow:0 2px 8px rgba(0,32,91,.22);
+}
+.export-btn:hover{background:var(--primaryD);border-color:var(--primaryD);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,32,91,.3);}
+.export-btn:active{transform:translateY(0);}
+.export-btn:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none;}
 /* ── CUSTOMIZE MODAL ── */
 .cust-overlay{
   position:fixed;inset:0;background:rgba(10,16,35,.45);z-index:500;
@@ -785,8 +796,8 @@ body::before{
   .clear-btn{display:none;}
   .stats-text{font-size:11px;}
   .cats-btn{padding:6px 10px;}
-  .customize-btn span{display:none;}
-  .customize-btn{padding:6px 10px;}
+  .customize-btn span,.export-btn span{display:none;}
+  .customize-btn,.export-btn{padding:6px 10px;}
   .kpi-row{grid-template-columns:1fr 1fr;}
   .axis-x-row,.axis-y{display:none;}
   .matrix-wrap{

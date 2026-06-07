@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="Matrix.css">
 <script src="firebase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -75,6 +76,10 @@
           <button class="customize-btn" id="customize-btn">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h10M2 10h10"/><circle cx="5" cy="4" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg>
             <span>Customize</span>
+          </button>
+          <button class="export-btn" id="export-btn" title="Download all data as Excel">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1.5v7.5"/><path d="M4 6l3 3 3-3"/><path d="M2 11.5h10"/></svg>
+            <span>Export</span>
           </button>
           <div class="dash-date" id="dash-date"></div>
         </div>
@@ -511,6 +516,107 @@ function renderCustOptions() {
   }).join('');
   document.getElementById('chart-count').textContent = `${tempCharts.length} selected`;
 }
+
+/* ── Export to Excel ── */
+const Q_META = {
+  q1: 'Q1 · Do First (Urgent & Important)',
+  q2: 'Q2 · Schedule (Important, Not Urgent)',
+  q3: 'Q3 · Delegate (Urgent, Not Important)',
+  q4: 'Q4 · Eliminate (Not Urgent, Not Important)',
+};
+
+function fmtDateTime(ms) {
+  if (!ms) return '';
+  return new Date(ms).toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true,
+  });
+}
+function durationStr(ms) {
+  if (ms == null || ms < 0) return '';
+  const totalH = ms / 3_600_000;
+  const d = Math.floor(totalH / 24);
+  const h = Math.round(totalH % 24);
+  if (d > 0) return `${d}d ${h}h`;
+  if (totalH >= 1) return `${Math.round(totalH)}h`;
+  return '< 1h';
+}
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { alert('Export library failed to load. Check your connection and refresh.'); return; }
+
+  const catLabel = id => (allCategories.find(c => c.id === id)?.label) || id || '';
+  const now = Date.now();
+
+  /* Sheet 1 — raw task rows */
+  const taskRows = allTasks
+    .slice()
+    .sort((a,b) => (a.createdAt||0) - (b.createdAt||0))
+    .map(t => {
+      const completionMs = (t.done && t.createdAt && t.completedAt) ? (t.completedAt - t.createdAt) : null;
+      const ageMs = (!t.done && t.createdAt) ? (now - t.createdAt) : null;
+      return {
+        'Task'              : t.text || '',
+        'Note'              : t.note || '',
+        'Quadrant'          : (t.q || '').toUpperCase(),
+        'Quadrant Detail'   : Q_META[t.q] || '',
+        'Category'          : catLabel(t.tag),
+        'Status'            : t.done ? 'Done' : 'Open',
+        'Date Added'        : fmtDateTime(t.createdAt),
+        'Date Completed'    : fmtDateTime(t.completedAt),
+        'Time to Complete'  : durationStr(completionMs),
+        'Age (open)'        : durationStr(ageMs),
+      };
+    });
+  if (!taskRows.length) taskRows.push({ Task:'(no tasks yet)' });
+
+  /* Sheet 2 — metrics summary (all computed KPIs) */
+  const total   = allTasks.length;
+  const doneAll = allTasks.filter(t => t.done);
+  const summaryRows = [
+    { Metric:'Total tasks',         Value: total },
+    { Metric:'Open tasks',          Value: kpiData.open?.value ?? '' },
+    { Metric:'Completed tasks',     Value: doneAll.length },
+    { Metric:'Completion rate',     Value: kpiData.rate?.value ?? '' },
+    { Metric:'Done today',          Value: kpiData.today?.value ?? '' },
+    { Metric:'Done this week',      Value: kpiData.week?.value ?? '' },
+    { Metric:'Q1 urgent open',      Value: kpiData.q1open?.value ?? '' },
+    { Metric:'Avg completion time', Value: kpiData.avg?.value ?? '' },
+    { Metric:'Oldest open task age',Value: kpiData.oldest?.value ?? '' },
+    { Metric:'', Value:'' },
+    { Metric:'— By quadrant —', Value:'' },
+  ];
+  ['q1','q2','q3','q4'].forEach(q => {
+    summaryRows.push({
+      Metric: Q_META[q].split(' · ')[1] || q.toUpperCase(),
+      Value : `${allTasks.filter(t=>t.q===q&&!t.done).length} open / ${allTasks.filter(t=>t.q===q&&t.done).length} done`,
+    });
+  });
+  summaryRows.push({ Metric:'', Value:'' });
+  summaryRows.push({ Metric:'— By category —', Value:'' });
+  allCategories.forEach(c => {
+    const all  = allTasks.filter(t => t.tag === c.id);
+    summaryRows.push({ Metric: c.label, Value: `${all.filter(t=>!t.done).length} open / ${all.filter(t=>t.done).length} done` });
+  });
+  summaryRows.push({ Metric:'', Value:'' });
+  summaryRows.push({ Metric:'Exported on', Value: fmtDateTime(now) });
+
+  /* Build workbook */
+  const wb = XLSX.utils.book_new();
+
+  const wsTasks = XLSX.utils.json_to_sheet(taskRows);
+  wsTasks['!cols'] = [
+    {wch:42},{wch:36},{wch:9},{wch:42},{wch:12},
+    {wch:8},{wch:22},{wch:22},{wch:16},{wch:12},
+  ];
+  XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks');
+
+  const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+  wsSummary['!cols'] = [{wch:34},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  const stamp = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `matrix-tasks-${stamp}.xlsx`);
+});
 </script>
 </body>
 </html>
