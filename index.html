@@ -116,37 +116,38 @@
 <!-- App layout -->
 <div class="app-layout">
 
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="sb-brand">
-      <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
-      <div class="sb-name">Matrix</div>
-    </div>
-    <div class="sb-nav">
-      <a href="index.html" class="sb-link active">
-        <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.45"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.45"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.2"/></svg></span>
-        <span>Matrix</span>
-      </a>
-      <a href="stats.html" class="sb-link">
-        <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg></span>
-        <span>Stats</span>
-      </a>
-    </div>
-    <div class="sb-footer">
-      <div class="sb-user" id="sb-user"></div>
-      <button class="sb-settings-btn" id="sb-reminder-btn">
-        <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.79 2 4 3.79 4 6v3.5L2.5 11h11L12 9.5V6C12 3.79 10.21 2 8 2z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg></span>
-        <span>Reminders</span>
-      </button>
-      <button class="sb-logout" id="sb-logout">
-        <span class="sb-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5.5"/><path d="M10.5 5.5L13.5 8l-3 2.5"/><path d="M13.5 8H6.5"/></svg></span>
-        <span>Sign out</span>
-      </button>
-    </div>
-  </nav>
-
   <!-- Main area -->
   <div class="main-area">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <a href="index.html" class="nav-brand">
+        <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
+        <span class="nav-name">Matrix</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="currentColor"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.45"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.45"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="currentColor" opacity="0.2"/></svg>
+          <span>Matrix</span>
+        </a>
+        <a href="stats.html" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg>
+          <span>Stats</span>
+        </a>
+      </nav>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
+      </div>
+      <div class="topbar-right">
+        <span class="stats-text" id="stats-text"></span>
+        <button class="nav-icon-btn" id="sb-reminder-btn" title="Reminders"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.79 2 4 3.79 4 6v3.5L2.5 11h11L12 9.5V6C12 3.79 10.21 2 8 2z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg></button>
+        <button class="cats-btn" id="cats-btn" title="Manage categories"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5.8 1h2.4l.28 1.38c.32.12.62.28.9.48l1.32-.52 1.2 2.08-.98.8c.05.26.08.52.08.78s-.03.52-.08.78l.98.8-1.2 2.08-1.32-.52c-.28.2-.58.36-.9.48L8.2 11H5.8l-.28-1.38a4 4 0 01-.9-.48l-1.32.52L2.1 7.58l.98-.8A4.1 4.1 0 013 6c0-.26.03-.52.08-.78l-.98-.8 1.2-2.08 1.32.52c.28-.2.58-.36.9-.48L5.8 1zM7 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg></button>
+        <button class="clear-btn" id="clear-done-btn">Clear done</button>
+        <span class="nav-user" id="sb-user"></span>
+        <button class="nav-icon-btn nav-logout" id="sb-logout" title="Sign out"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5.5"/><path d="M10.5 5.5L13.5 8l-3 2.5"/><path d="M13.5 8H6.5"/></svg></button>
+      </div>
+    </header>
 
     <!-- Migration banner -->
     <div class="migration-banner" id="migration-banner" style="display:none">
@@ -154,20 +155,6 @@
       <button class="mig-import"  id="mig-import">Import</button>
       <button class="mig-dismiss" id="mig-dismiss">Dismiss</button>
     </div>
-
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="search-wrap">
-        <span class="search-icon">⌕</span>
-        <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
-      </div>
-      <div class="topbar-right">
-        <span class="stats-text" id="stats-text"></span>
-        <a href="stats.html" class="stats-nav-btn" title="Statistics"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg></a>
-        <button class="cats-btn" id="cats-btn" title="Manage categories"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5.8 1h2.4l.28 1.38c.32.12.62.28.9.48l1.32-.52 1.2 2.08-.98.8c.05.26.08.52.08.78s-.03.52-.08.78l.98.8-1.2 2.08-1.32-.52c-.28.2-.58.36-.9.48L8.2 11H5.8l-.28-1.38a4 4 0 01-.9-.48l-1.32.52L2.1 7.58l.98-.8A4.1 4.1 0 013 6c0-.26.03-.52.08-.78l-.98-.8 1.2-2.08 1.32.52c.28-.2.58-.36.9-.48L5.8 1zM7 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg></button>
-        <button class="clear-btn" id="clear-done-btn">Clear done</button>
-      </div>
-    </header>
 
     <!-- Axis x (desktop only) -->
     <div class="axis-x-row">
