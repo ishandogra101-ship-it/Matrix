@@ -480,15 +480,13 @@ function refreshAssigneeSelects() {
     sel.innerHTML = buildPeopleOptions(cur);
   });
 }
-/* Small avatar + name chip shown on delegated cards. */
+/* Small person icon + name shown on delegated cards. */
 function personChip(id) {
   const p = getPerson(id);
   if (!p) return '';
-  const face = p.id === 'self'
-    ? `<svg width="9" height="9" viewBox="0 0 12 12" fill="white"><circle cx="6" cy="4" r="2.2"/><path d="M1.8 11c0-2.3 1.9-3.5 4.2-3.5s4.2 1.2 4.2 3.5z"/></svg>`
-    : esc(initials(p.name));
+  const c = p.color || '#00205B';
   return `<span class="assignee-chip" title="Delegated to ${esc(p.name)}">
-            <span class="assignee-av" style="background:${p.color || '#00205B'}">${face}</span>
+            <svg class="assignee-ic" width="11" height="11" viewBox="0 0 12 12" fill="${c}"><circle cx="6" cy="3.5" r="2.3"/><path d="M1.5 11c0-2.4 2-3.8 4.5-3.8s4.5 1.4 4.5 3.8z"/></svg>
             <span class="assignee-name">${esc(p.name)}</span>
           </span>`;
 }

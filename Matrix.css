@@ -294,18 +294,10 @@ body::before{
 .done-date{color:var(--greenD);}
 .done-card .task-meta{opacity:.6;}
 
-/* Delegated-to chip (Q3) */
-.assignee-chip{
-  display:inline-flex;align-items:center;gap:4px;flex-shrink:0;
-  padding:1px 7px 1px 2px;border-radius:var(--rpill);
-  background:var(--surface3);border:1px solid var(--border);
-}
-.assignee-av{
-  width:15px;height:15px;border-radius:50%;flex-shrink:0;
-  display:grid;place-items:center;
-  font-size:8px;font-weight:700;color:#fff;line-height:1;letter-spacing:0;
-}
-.assignee-name{font-size:10px;font-weight:600;color:var(--ink2);max-width:84px;
+/* Delegated-to (Q3) — person icon + name, blends with the meta row */
+.assignee-chip{display:inline-flex;align-items:center;gap:3px;flex-shrink:0;}
+.assignee-ic{display:block;flex-shrink:0;}
+.assignee-name{font-size:10px;font-weight:600;color:var(--ink2);max-width:90px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 .task-actions{display:flex;gap:2px;flex-shrink:0;opacity:0;transition:opacity var(--ease);}
