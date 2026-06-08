@@ -438,7 +438,6 @@ async function initApp(user) {
 
   await Promise.all([loadCategories(), loadPeople(), loadSettings()]);
   refreshAllSelects();
-  clearStalePending(); // fire-and-forget: clean up any pending stuck from a closed session
 
   let firstSnap = true;
   unsubTasks = onSnapshot(tasksRef, snap => {
@@ -746,18 +745,15 @@ function buildReminderEmail(taskList) {
 async function postToPA(toEmail, taskList) {
   const subject = `Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need your attention`;
   const notifRef = doc(db, 'notifications', 'pending');
+  // Use a self-expiring ISO timestamp (70s from now).
+  // PA condition checks: pendingExpires > utcNow() — no cleanup ever needed.
   await setDoc(notifRef, {
     to_email: toEmail,
     subject,
     html_body: buildReminderEmail(taskList),
-    pending: true,
+    pendingExpires: new Date(Date.now() + 70_000).toISOString(),
     ts: Date.now(),
   });
-  // Auto-clear after 75s. PA polls every 1 min, so this limits it to one send.
-  // Also cleared on next app open via clearStalePending() if app was closed early.
-  setTimeout(async () => {
-    try { await setDoc(notifRef, { pending: false, ts: 0 }, { merge: true }); } catch {}
-  }, 75_000);
 }
 
 async function sendTaskEmail(task) {
@@ -770,19 +766,6 @@ async function sendTaskEmail(task) {
     showToast('Failed: ' + e.message);
   }
 }
-async function triggerNotify(taskId) { /* removed */ }
-
-/* ── Clear any pending notification left over from a previous closed session ── */
-async function clearStalePending() {
-  try {
-    const notifRef = doc(db, 'notifications', 'pending');
-    const snap = await getDoc(notifRef);
-    if (snap.exists() && snap.data().pending && Date.now() - (snap.data().ts || 0) > 120_000) {
-      await setDoc(notifRef, { pending: false, ts: 0 }, { merge: true });
-    }
-  } catch {}
-}
-
 /* ── On-open reminder check ── */
 async function checkReminder() {
   if (!NOTIFICATIONS_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
