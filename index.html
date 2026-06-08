@@ -747,6 +747,7 @@ async function postToPA(toEmail, taskList) {
   try {
     const res = await fetch(PA_URL, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ to_email: toEmail, subject, html_body: buildReminderEmail(taskList) }),
     });
