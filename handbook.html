@@ -4,1744 +4,831 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Matrix — User Handbook</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & Base ─────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --navy:   #00205B;
-      --red:    #C8102E;
-      --green:  #00875A;
-      --amber:  #B45309;
-      --grey:   #9BAABB;
-      --bg:     #F0F3F8;
-      --white:  #ffffff;
-      --text:   #1a2340;
-      --muted:  #5a6a80;
-      --border: #d0d9e8;
+      --navy:#00205B; --red:#C8102E; --green:#00875A; --amber:#B45309;
+      --grey:#9BAABB; --bg:#F0F3F8; --white:#fff; --text:#0D1526;
+      --muted:#4a5a78; --border:#D5DAE8; --surface:#fff;
     }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); font-size:13.5px; line-height:1.65; }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.75;
-    }
-
-    /* ── Print Button ─────────────────────────────────────── */
+    /* ── Print button ── */
     .print-btn {
-      position: fixed;
-      top: 18px;
-      right: 24px;
-      z-index: 9999;
-      background: var(--navy);
-      color: var(--white);
-      border: none;
-      border-radius: 8px;
-      padding: 10px 20px;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(0,32,91,0.25);
-      transition: background 0.2s;
+      position:fixed; top:16px; right:20px; z-index:9999;
+      background:var(--navy); color:#fff; border:none; border-radius:8px;
+      padding:9px 20px; font-family:'Inter',sans-serif; font-size:13px;
+      font-weight:600; cursor:pointer; box-shadow:0 4px 14px rgba(0,32,91,.25);
     }
-    .print-btn:hover { background: #001840; }
+    .print-btn:hover { background:#001844; }
 
-    /* ── Page Wrapper ─────────────────────────────────────── */
-    .page-wrapper {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: 0 24px 80px;
+    /* ── Page ── */
+    .pg {
+      min-height:1122px; max-width:794px; margin:0 auto 32px;
+      background:var(--white); overflow:hidden; position:relative;
+      box-shadow:0 4px 24px rgba(0,32,91,.10);
     }
 
-    /* ── Cover Page ───────────────────────────────────────── */
+    /* ── Cover (page 1) ── */
     .cover {
-      min-height: 100vh;
-      background: linear-gradient(160deg, #00205B 0%, #001438 60%, #00102e 100%);
-      border-radius: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--white);
-      padding: 60px 40px;
-      margin-bottom: 48px;
-      position: relative;
-      overflow: hidden;
-    }
-    .cover::before {
-      content: '';
-      position: absolute;
-      top: -80px; right: -80px;
-      width: 340px; height: 340px;
-      border-radius: 50%;
-      background: rgba(200,16,46,0.12);
-    }
-    .cover::after {
-      content: '';
-      position: absolute;
-      bottom: -60px; left: -60px;
-      width: 260px; height: 260px;
-      border-radius: 50%;
-      background: rgba(0,135,90,0.1);
+      background:linear-gradient(150deg,#00205B 0%,#0355A0 100%);
+      min-height:1122px; display:flex; flex-direction:column;
+      justify-content:center; align-items:center; text-align:center;
+      padding:60px 60px;
     }
     .cover-logo {
-      margin-bottom: 32px;
-      position: relative;
-      z-index: 1;
+      width:68px; height:68px; background:rgba(255,255,255,.15);
+      border-radius:18px; display:flex; align-items:center; justify-content:center;
+      margin:0 auto 32px; border:2px solid rgba(255,255,255,.25);
     }
-    .cover-logo svg {
-      width: 80px;
-      height: 80px;
+    .cover-logo svg { color:#fff; }
+    .cover h1 { font-size:42px; font-weight:800; color:#fff; letter-spacing:-1px; line-height:1.1; }
+    .cover .sub { font-size:17px; color:rgba(255,255,255,.72); margin-top:14px; font-weight:400; }
+    .cover .pill {
+      margin-top:40px; background:rgba(255,255,255,.15); color:#fff;
+      border:1px solid rgba(255,255,255,.25); border-radius:100px;
+      padding:8px 20px; font-size:13px; font-weight:500;
     }
-    .cover h1 {
-      font-size: 72px;
-      font-weight: 900;
-      letter-spacing: -2px;
-      margin-bottom: 12px;
-      position: relative;
-      z-index: 1;
+    .q-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:14px;
+      margin-top:52px; width:100%; max-width:440px;
     }
-    .cover-subtitle {
-      font-size: 22px;
-      font-weight: 400;
-      opacity: 0.85;
-      margin-bottom: 20px;
-      position: relative;
-      z-index: 1;
+    .q-box {
+      background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+      border-radius:12px; padding:18px 16px; text-align:left;
     }
-    .cover-org {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      opacity: 0.7;
-      text-transform: uppercase;
-      margin-bottom: 48px;
-      position: relative;
-      z-index: 1;
+    .q-box .ql { font-size:10px; font-weight:700; letter-spacing:.8px;
+      color:rgba(255,255,255,.6); text-transform:uppercase; margin-bottom:4px; }
+    .q-box .qt { font-size:13.5px; font-weight:600; color:#fff; }
+    .q-box .qd { font-size:11.5px; color:rgba(255,255,255,.6); margin-top:3px; }
+    .q-box.q1-c { border-top:3px solid #C8102E; }
+    .q-box.q2-c { border-top:3px solid rgba(255,255,255,.7); }
+    .q-box.q3-c { border-top:3px solid #00875A; }
+    .q-box.q4-c { border-top:3px solid #9BAABB; }
+    .cover-foot { margin-top:52px; color:rgba(255,255,255,.4); font-size:11px; }
+
+    /* ── Content pages ── */
+    .inner { padding:52px 56px; }
+    .pg-num {
+      position:absolute; bottom:28px; right:40px;
+      font-size:11px; color:var(--border); font-weight:600; letter-spacing:.5px;
     }
-    .cover-divider {
-      width: 80px;
-      height: 3px;
-      background: rgba(255,255,255,0.3);
-      border-radius: 2px;
-      margin: 0 auto 40px;
-      position: relative;
-      z-index: 1;
-    }
-    .cover-meta {
-      font-size: 14px;
-      opacity: 0.55;
-      position: relative;
-      z-index: 1;
-      letter-spacing: 0.5px;
-    }
-    .cover-quadrant-preview {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      width: 200px;
-      margin: 32px auto;
-      position: relative;
-      z-index: 1;
-    }
-    .cover-q {
-      height: 56px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: white;
+    .watermark {
+      position:absolute; bottom:24px; left:40px;
+      font-size:10.5px; color:var(--border); font-weight:600; letter-spacing:.5px;
     }
 
-    /* ── Table of Contents ────────────────────────────────── */
-    .toc {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 48px 52px;
-      margin-bottom: 48px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 20px rgba(0,32,91,0.06);
+    /* ── Section headings ── */
+    .pg-title {
+      font-size:22px; font-weight:800; color:var(--navy);
+      border-bottom:3px solid var(--navy); padding-bottom:10px; margin-bottom:22px;
+      letter-spacing:-.4px;
     }
-    .toc h2 {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--navy);
-      margin-bottom: 8px;
+    .pg-title span { color:var(--red); }
+    h3 { font-size:14px; font-weight:700; color:var(--navy); margin:18px 0 8px; }
+    h4 { font-size:12.5px; font-weight:700; color:var(--muted); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* ── Two-column layout ── */
+    .cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .cols3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+
+    /* ── Cards ── */
+    .card {
+      background:#F5F7FB; border:1px solid var(--border); border-radius:10px;
+      padding:16px; margin-bottom:12px;
     }
-    .toc-lead {
-      font-size: 14px;
-      color: var(--muted);
-      margin-bottom: 32px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 20px;
+    .card h3 { margin-top:0; }
+    .q-card { border-radius:10px; padding:16px 18px; margin-bottom:10px; border-left:4px solid transparent; }
+    .q-card.r  { background:#FFF0F2; border-color:var(--red);   }
+    .q-card.n  { background:#EEF1F8; border-color:var(--navy);  }
+    .q-card.g  { background:#E0F4EE; border-color:var(--green); }
+    .q-card.a  { background:#FEF3D8; border-color:var(--amber); }
+    .q-card .ql { font-size:10px; font-weight:700; letter-spacing:.7px; text-transform:uppercase; margin-bottom:4px; }
+    .q-card.r .ql { color:var(--red); }
+    .q-card.n .ql { color:var(--navy); }
+    .q-card.g .ql { color:var(--green); }
+    .q-card.a .ql { color:var(--amber); }
+    .q-card .qt { font-size:13.5px; font-weight:700; color:var(--text); }
+    .q-card .qd { font-size:12px; color:var(--muted); margin-top:4px; }
+
+    /* ── Steps ── */
+    .steps { list-style:none; margin:0; padding:0; }
+    .steps li {
+      display:flex; gap:12px; align-items:flex-start;
+      padding:8px 0; border-bottom:1px solid var(--border);
+      font-size:13px;
     }
-    .toc-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
+    .steps li:last-child { border-bottom:none; }
+    .sn {
+      min-width:22px; height:22px; border-radius:50%;
+      background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+      margin-top:1px;
     }
-    .toc-item {
-      display: flex;
-      align-items: baseline;
-      padding: 8px 0;
-      border-bottom: 1px solid #eef1f7;
-      font-size: 14px;
+    .sn.red { background:var(--red); }
+    .sn.green { background:var(--green); }
+
+    /* ── Tips / Warnings ── */
+    .tip, .warn {
+      border-radius:8px; padding:10px 14px; margin:12px 0;
+      font-size:12.5px; display:flex; gap:10px; align-items:flex-start;
     }
-    .toc-item:last-child { border-bottom: none; }
-    .toc-num {
-      font-weight: 700;
-      color: var(--navy);
-      min-width: 36px;
-      font-size: 12px;
+    .tip  { background:#EEF1F8; border-left:3px solid var(--navy); color:var(--navy); }
+    .warn { background:#FEF3D8; border-left:3px solid var(--amber); color:#7a4800; }
+    .tip-icon,.warn-icon { flex-shrink:0; font-size:14px; line-height:1.5; }
+
+    /* ── Tables ── */
+    .tbl { width:100%; border-collapse:collapse; font-size:12.5px; margin:10px 0; }
+    .tbl th { background:var(--navy); color:#fff; padding:8px 10px; text-align:left; font-weight:600; font-size:11.5px; }
+    .tbl td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; }
+    .tbl tr:last-child td { border-bottom:none; }
+    .tbl tr:nth-child(even) td { background:#F5F7FB; }
+    .badge {
+      display:inline-block; padding:2px 8px; border-radius:100px;
+      font-size:10.5px; font-weight:700; white-space:nowrap;
     }
-    .toc-title {
-      font-weight: 500;
-      color: var(--text);
-      flex: 1;
+    .badge.r { background:#FAECEE; color:var(--red); }
+    .badge.n { background:#EEF1F8; color:var(--navy); }
+    .badge.g { background:#E0F4EE; color:var(--green); }
+    .badge.a { background:#FEF3D8; color:var(--amber); }
+
+    /* ── KPI grid ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0; }
+    .kpi-mini {
+      border:1px solid var(--border); border-radius:8px; padding:12px 14px;
+      background:#F5F7FB; border-top:3px solid var(--navy);
     }
-    .toc-dots {
-      flex: 1;
-      border-bottom: 1px dotted var(--border);
-      margin: 0 10px;
-      height: 1px;
-      align-self: center;
+    .kpi-mini .km-label { font-size:10.5px; color:var(--muted); font-weight:600; margin-bottom:4px; }
+    .kpi-mini .km-val { font-size:18px; font-weight:800; color:var(--navy); }
+    .kpi-mini .km-foot { font-size:10.5px; color:var(--muted); margin-top:2px; }
+    .kpi-mini.red   { border-top-color:var(--red);   } .kpi-mini.red   .km-val { color:var(--red);   }
+    .kpi-mini.green { border-top-color:var(--green); } .kpi-mini.green .km-val { color:var(--green); }
+    .kpi-mini.amber { border-top-color:var(--amber); } .kpi-mini.amber .km-val { color:var(--amber); }
+
+    /* ── Mock topbar ── */
+    .mock-bar {
+      background:var(--white); border:1px solid var(--border); border-radius:8px;
+      padding:10px 16px; display:flex; align-items:center; gap:10px;
+      font-size:12px; margin:12px 0;
     }
-    .toc-cover-item {
-      display: flex;
-      align-items: baseline;
-      padding: 8px 0;
-      border-bottom: 1px solid #eef1f7;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--navy);
+    .mock-brand { font-weight:800; color:var(--navy); font-size:14px; letter-spacing:-.3px; }
+    .mock-sep { color:var(--border); margin:0 4px; }
+    .mock-link { color:var(--muted); padding:4px 8px; border-radius:6px; }
+    .mock-link.act { background:var(--navy); color:#fff; font-weight:600; }
+    .ml { margin-left:auto; display:flex; gap:8px; }
+
+    /* ── Delegation mockup ── */
+    .task-mock {
+      border:1px solid var(--border); border-radius:8px; padding:12px 16px;
+      font-size:12.5px; margin:8px 0; background:#fff; display:flex;
+      align-items:center; gap:10px;
+    }
+    .tm-dot { width:14px; height:14px; border-radius:50%; border:2px solid #9BAABB; flex-shrink:0; }
+    .tm-dot.done { background:var(--navy); border-color:var(--navy); }
+    .tm-text { flex:1; color:var(--text); }
+    .tm-chip {
+      display:flex; align-items:center; gap:4px; font-size:11.5px;
+      color:var(--navy); font-weight:500;
     }
 
-    /* ── Sections ─────────────────────────────────────────── */
-    .section {
-      background: var(--white);
-      border-radius: 16px;
-      padding: 48px 52px;
-      margin-bottom: 36px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 20px rgba(0,32,91,0.06);
-    }
-    .section-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 28px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid var(--border);
-    }
-    .section-num {
-      background: var(--navy);
-      color: var(--white);
-      font-size: 13px;
-      font-weight: 800;
-      min-width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .section-title {
-      font-size: 26px;
-      font-weight: 800;
-      color: var(--navy);
-      line-height: 1.2;
-    }
-    .section-subtitle {
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 400;
-      margin-top: 4px;
-    }
+    /* ── Spacers ── */
+    .mt8  { margin-top:8px;  }
+    .mt12 { margin-top:12px; }
+    .mt16 { margin-top:16px; }
+    .mt20 { margin-top:20px; }
+    .mb8  { margin-bottom:8px;  }
 
-    h3 {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--navy);
-      margin: 28px 0 12px;
-    }
-    h4 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text);
-      margin: 20px 0 8px;
-    }
+    p { margin:6px 0; font-size:13px; color:var(--muted); }
 
-    p { margin-bottom: 14px; }
-    p:last-child { margin-bottom: 0; }
-
-    ol, ul {
-      margin: 12px 0 16px 0;
-      padding-left: 24px;
-    }
-    li { margin-bottom: 8px; line-height: 1.7; }
-    ol li::marker { font-weight: 700; color: var(--navy); }
-    ul li::marker { color: var(--navy); }
-
-    /* ── Special Boxes ────────────────────────────────────── */
-    .tip-box {
-      background: #e8f0fe;
-      border-left: 4px solid #4a80e4;
-      border-radius: 0 10px 10px 0;
-      padding: 14px 18px;
-      margin: 20px 0;
-      font-size: 14px;
-      color: #1a3170;
-    }
-    .tip-box strong { font-weight: 700; }
-
-    .warn-box {
-      background: #fde8ec;
-      border-left: 4px solid var(--red);
-      border-radius: 0 10px 10px 0;
-      padding: 14px 18px;
-      margin: 20px 0;
-      font-size: 14px;
-      color: #7a0a1a;
-    }
-    .warn-box strong { font-weight: 700; }
-
-    .note-box {
-      background: #fff8e6;
-      border-left: 4px solid var(--amber);
-      border-radius: 0 10px 10px 0;
-      padding: 14px 18px;
-      margin: 20px 0;
-      font-size: 14px;
-      color: #6b3a00;
-    }
-
-    /* ── 2x2 Quadrant Table ───────────────────────────────── */
-    .quadrant-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 20px 0;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,32,91,0.1);
-    }
-    .quadrant-table th, .quadrant-table td {
-      padding: 18px 20px;
-      text-align: left;
-      font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .quadrant-table .q-header {
-      font-weight: 800;
-      font-size: 13px;
-      letter-spacing: 0.4px;
-      text-transform: uppercase;
-      color: white;
-    }
-    .q1-cell { background: var(--red); color: white; }
-    .q2-cell { background: var(--navy); color: white; }
-    .q3-cell { background: var(--green); color: white; }
-    .q4-cell { background: var(--grey); color: white; }
-    .axis-cell {
-      background: var(--bg);
-      font-weight: 700;
-      font-size: 13px;
-      color: var(--muted);
-      text-align: center;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    /* ── Quadrant Cards ───────────────────────────────────── */
-    .quadrant-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin: 20px 0;
-    }
-    .q-card {
-      border-radius: 12px;
-      padding: 20px;
-      color: white;
-    }
-    .q-card h4 {
-      color: white;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 8px;
-    }
-    .q-card p { font-size: 13px; opacity: 0.9; margin: 0; }
-    .q-card.q1 { background: var(--red); }
-    .q-card.q2 { background: var(--navy); }
-    .q-card.q3 { background: var(--green); }
-    .q-card.q4 { background: var(--grey); }
-
-    /* ── Step List ────────────────────────────────────────── */
-    .step-list {
-      list-style: none;
-      padding: 0;
-      margin: 16px 0;
-      counter-reset: step-counter;
-    }
-    .step-list li {
-      counter-increment: step-counter;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      margin-bottom: 14px;
-      padding: 14px 16px;
-      background: var(--bg);
-      border-radius: 10px;
-    }
-    .step-list li::before {
-      content: counter(step-counter);
-      background: var(--navy);
-      color: white;
-      font-size: 12px;
-      font-weight: 800;
-      min-width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .step-list li p { margin: 0; font-size: 14px; }
-
-    /* ── Inline Code / UI Labels ──────────────────────────── */
-    .ui-label {
-      background: var(--navy);
-      color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 5px;
-      letter-spacing: 0.3px;
-      white-space: nowrap;
-    }
-    .ui-label.red { background: var(--red); }
-    .ui-label.green { background: var(--green); }
-    .ui-label.grey { background: var(--grey); }
-    .ui-label.amber { background: var(--amber); }
-
-    code {
-      background: #eef1f7;
-      color: var(--navy);
-      padding: 2px 7px;
-      border-radius: 5px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    /* ── KPI & Chart List ─────────────────────────────────── */
-    .metric-list {
-      list-style: none;
-      padding: 0;
-      margin: 12px 0;
-    }
-    .metric-list li {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
-    .metric-list li:last-child { border-bottom: none; }
-    .metric-num {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--navy);
-      font-weight: 700;
-      font-size: 11px;
-      min-width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .metric-body strong { color: var(--navy); font-weight: 700; }
-    .metric-body span { color: var(--muted); }
-
-    /* ── Troubleshoot Table ───────────────────────────────── */
-    .trouble-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      border-radius: 10px;
-      overflow: hidden;
-      font-size: 14px;
-    }
-    .trouble-table tr { border-bottom: 1px solid var(--border); }
-    .trouble-table tr:last-child { border-bottom: none; }
-    .trouble-table td { padding: 14px 16px; vertical-align: top; }
-    .trouble-table td:first-child {
-      background: #fde8ec;
-      color: var(--red);
-      font-weight: 600;
-      width: 40%;
-    }
-    .trouble-table td:last-child {
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    /* ── Best Practices Cards ─────────────────────────────── */
-    .practice-card {
-      background: var(--bg);
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      border-left: 4px solid var(--navy);
-    }
-    .practice-card h4 {
-      color: var(--navy);
-      margin: 0 0 10px;
-      font-size: 15px;
-    }
-    .practice-card ul { margin: 0; }
-    .practice-card.accent-red { border-left-color: var(--red); }
-    .practice-card.accent-green { border-left-color: var(--green); }
-    .practice-card.accent-amber { border-left-color: var(--amber); }
-
-    /* ── Excel Sheet Table ────────────────────────────────── */
-    .sheet-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 16px 0;
-      font-size: 13px;
-    }
-    .sheet-table th {
-      background: var(--navy);
-      color: white;
-      padding: 10px 14px;
-      text-align: left;
-      font-weight: 700;
-    }
-    .sheet-table td {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .sheet-table tr:nth-child(even) td { background: var(--bg); }
-    .sheet-table td:first-child { font-weight: 600; color: var(--navy); }
-
-    /* ── Feature Row ──────────────────────────────────────── */
-    .feature-row {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .feature-row:last-child { border-bottom: none; }
-    .feature-icon {
-      font-size: 20px;
-      min-width: 36px;
-    }
-    .feature-text strong { color: var(--navy); font-size: 14px; }
-    .feature-text p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
-
-    /* ── Print Styles ─────────────────────────────────────── */
+    /* ── Print ── */
     @media print {
-      @page { size: A4; margin: 18mm 20mm; }
-
-      body { background: white; font-size: 12pt; }
-
-      .print-btn { display: none !important; }
-
-      .page-wrapper { max-width: 100%; padding: 0; }
-
-      .cover {
-        page-break-before: always;
-        page-break-after: always;
-        min-height: 100vh;
-        margin-bottom: 0;
-        border-radius: 0;
-        box-shadow: none;
+      .print-btn { display:none; }
+      body { background:#fff; }
+      .pg {
+        max-width:100%; box-shadow:none; margin:0;
+        height:257mm; min-height:unset; overflow:hidden;
+        page-break-after:always; break-after:page;
       }
-
-      .toc {
-        page-break-before: always;
-        page-break-after: always;
-        border-radius: 0;
-        box-shadow: none;
-        border: none;
-        padding: 32px 20px;
-      }
-
-      .section {
-        page-break-before: always;
-        border-radius: 0;
-        box-shadow: none;
-        border: 1px solid #ddd;
-        padding: 32px 20px;
-        margin-bottom: 0;
-      }
-
-      .quadrant-cards { grid-template-columns: 1fr 1fr; }
-
-      .tip-box, .warn-box, .note-box {
-        page-break-inside: avoid;
-      }
-
-      .step-list li { page-break-inside: avoid; }
-
-      h3, h4 { page-break-after: avoid; }
-
-      a { text-decoration: none; color: inherit; }
-    }
-
-    @media (max-width: 640px) {
-      .section { padding: 28px 20px; }
-      .toc { padding: 28px 20px; }
-      .cover h1 { font-size: 48px; }
-      .quadrant-cards { grid-template-columns: 1fr; }
-      .print-btn { top: auto; bottom: 16px; right: 16px; }
+      .cover { height:257mm; min-height:unset; }
+      @page { size:A4; margin:0; }
     }
   </style>
 </head>
 <body>
+<button class="print-btn" onclick="window.print()">Print / Save PDF</button>
 
-<button onclick="window.print()" class="print-btn">&#x1F5A8; Print / Save as PDF</button>
-
-<div class="page-wrapper">
-
-  <!-- ═══════════════════════════════════════ COVER ═══ -->
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 1 — COVER
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
   <div class="cover">
     <div class="cover-logo">
-      <svg width="80" height="80" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/>
-        <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/>
-        <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/>
-        <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/>
+        <rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
       </svg>
     </div>
     <h1>Matrix</h1>
-    <div class="cover-subtitle">Your Complete User Guide</div>
-    <div class="cover-quadrant-preview">
-      <div class="cover-q" style="background:#C8102E;">Q1<br/>Do First</div>
-      <div class="cover-q" style="background:#00205B;">Q2<br/>Schedule</div>
-      <div class="cover-q" style="background:#00875A;">Q3<br/>Delegate</div>
-      <div class="cover-q" style="background:#9BAABB;">Q4<br/>Eliminate</div>
+    <div class="sub">Eisenhower Priority Matrix — User Handbook</div>
+    <div class="pill">Maruti Suzuki Internal Tool · v2.0</div>
+
+    <div class="q-grid">
+      <div class="q-box q1-c">
+        <div class="ql">Q1 · Do First</div>
+        <div class="qt">Urgent &amp; Important</div>
+        <div class="qd">Handle immediately</div>
+      </div>
+      <div class="q-box q2-c">
+        <div class="ql">Q2 · Schedule</div>
+        <div class="qt">Not Urgent &amp; Important</div>
+        <div class="qd">Plan and invest time</div>
+      </div>
+      <div class="q-box q3-c">
+        <div class="ql">Q3 · Delegate</div>
+        <div class="qt">Urgent &amp; Not Important</div>
+        <div class="qd">Hand off to someone else</div>
+      </div>
+      <div class="q-box q4-c">
+        <div class="ql">Q4 · Eliminate</div>
+        <div class="qt">Not Urgent &amp; Not Important</div>
+        <div class="qd">Drop or defer</div>
+      </div>
     </div>
-    <div class="cover-divider"></div>
-    <div class="cover-org">Eisenhower Matrix Task Manager for Maruti Suzuki</div>
-    <div class="cover-meta">Version 1.0 &nbsp;&middot;&nbsp; June 2026</div>
-  </div>
 
-  <!-- ═══════════════════════════════════════ TABLE OF CONTENTS ═══ -->
-  <div class="toc">
-    <h2>Table of Contents</h2>
-    <p class="toc-lead">This guide covers everything you need to use Matrix from your very first login to advanced features like the Statistics Dashboard and Excel Export.</p>
-    <ul class="toc-list">
-      <li class="toc-item">
-        <span class="toc-num">01</span>
-        <span class="toc-title">What Is the Eisenhower Matrix?</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">02</span>
-        <span class="toc-title">What Is the Matrix App?</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">03</span>
-        <span class="toc-title">Signing In for the First Time</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">04</span>
-        <span class="toc-title">The Main Screen — What You Are Looking At</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">05</span>
-        <span class="toc-title">The Four Quadrants — Understanding Each One</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">06</span>
-        <span class="toc-title">Adding a Task</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">07</span>
-        <span class="toc-title">Completing a Task</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">08</span>
-        <span class="toc-title">Editing a Task</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">09</span>
-        <span class="toc-title">Deleting a Task</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">10</span>
-        <span class="toc-title">Moving Tasks Between Quadrants (Drag and Drop)</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">11</span>
-        <span class="toc-title">Expanding a Quadrant (Full Screen View)</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">12</span>
-        <span class="toc-title">Categories — Colour-Coded Labels</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">13</span>
-        <span class="toc-title">Delegation — Assigning Tasks to People</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">14</span>
-        <span class="toc-title">Search — Finding Tasks Quickly</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">15</span>
-        <span class="toc-title">Clearing Done Tasks</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">16</span>
-        <span class="toc-title">The Statistics Dashboard</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">17</span>
-        <span class="toc-title">Email Reminders</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">18</span>
-        <span class="toc-title">Downloading Your Data (Excel Export)</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">19</span>
-        <span class="toc-title">Using Matrix on Your Mobile Phone</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">20</span>
-        <span class="toc-title">Daily Best Practices — Getting the Most Out of Matrix</span>
-        <span class="toc-dots"></span>
-      </li>
-      <li class="toc-item">
-        <span class="toc-num">21</span>
-        <span class="toc-title">Troubleshooting</span>
-        <span class="toc-dots"></span>
-      </li>
-    </ul>
+    <div class="cover-foot">Confidential · For internal use only</div>
   </div>
+</div>
 
-  <!-- ═══════════════════════════════════════ SECTION 1 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">01</div>
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 2 — WHAT IS MATRIX + THE FOUR QUADRANTS
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">What is <span>Matrix</span>?</div>
+
+    <p style="font-size:13.5px;color:var(--text);margin-bottom:16px;">
+      Matrix is your personal task manager built for Maruti Suzuki. It uses the
+      <strong>Eisenhower Priority Method</strong> — a simple but powerful system to decide
+      which tasks need your attention <em>right now</em> and which ones can wait, be delegated,
+      or dropped entirely. Think of it as a to-do list with a brain.
+    </p>
+
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span><strong>The core idea:</strong> Every task you have should live in exactly one of four boxes based on two questions — Is it urgent? Is it important?</span>
+    </div>
+
+    <div class="mt16"></div>
+    <div class="pg-title" style="font-size:18px;border-bottom-width:2px;margin-bottom:16px;">The Four Quadrants</div>
+
+    <div class="q-card r">
+      <div class="ql">Q1 — DO FIRST (Red)</div>
+      <div class="qt">Urgent &amp; Important</div>
+      <div class="qd">These are on-fire tasks — deadlines, crises, emergencies. Work on these immediately. <strong>Example:</strong> Customer complaint that must be resolved today.</div>
+    </div>
+
+    <div class="q-card n">
+      <div class="ql">Q2 — SCHEDULE (Navy)</div>
+      <div class="qt">Not Urgent but Important</div>
+      <div class="qd">This is where growth happens. Plan these for your calendar. <strong>Example:</strong> Writing your quarterly review, learning a new skill.</div>
+    </div>
+
+    <div class="q-card g">
+      <div class="ql">Q3 — DELEGATE (Green)</div>
+      <div class="qt">Urgent but Not Important</div>
+      <div class="qd">These feel urgent but don't need <em>you</em> specifically. Hand them off. <strong>Example:</strong> Routine report filing, meeting scheduling.</div>
+    </div>
+
+    <div class="q-card a">
+      <div class="ql">Q4 — ELIMINATE (Amber)</div>
+      <div class="qt">Not Urgent &amp; Not Important</div>
+      <div class="qd">Time-wasters. Minimize or remove these. <strong>Example:</strong> Unnecessary browsing, trivial admin tasks.</div>
+    </div>
+
+    <div class="warn mt8">
+      <span class="warn-icon">⚠️</span>
+      <span><strong>Tip:</strong> Most people spend too much time in Q1 &amp; Q3. The goal is to move more work to Q2 — that's where you do your best work calmly.</span>
+    </div>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">2</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 3 — SIGNING IN + MAIN SCREEN
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Signing In &amp; The <span>Main Screen</span></div>
+
+    <div class="cols" style="gap:24px;margin-bottom:20px;">
       <div>
-        <div class="section-title">What Is the Eisenhower Matrix?</div>
-        <div class="section-subtitle">A simple method for deciding what to work on — and in what order</div>
+        <h3>How to Sign In</h3>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Open the app URL in your browser (Chrome or Edge recommended).</span></li>
+          <li><span class="sn">2</span><span>Enter your <strong>@maruti.co.in</strong> email address. Only Maruti email addresses are accepted.</span></li>
+          <li><span class="sn">3</span><span>Enter your password and click <strong>Sign In</strong>.</span></li>
+          <li><span class="sn">4</span><span>First time? Click <strong>Create Account</strong> to register with your Maruti email.</span></li>
+        </ul>
+        <div class="tip mt12">
+          <span class="tip-icon">🔒</span>
+          <span>Your data is private. No other user can see your tasks.</span>
+        </div>
+      </div>
+      <div>
+        <h3>Navigation Bar</h3>
+        <div class="mock-bar">
+          <span class="mock-brand">Matrix</span>
+          <span class="mock-sep">|</span>
+          <span class="mock-link act">Matrix</span>
+          <span class="mock-link">Stats</span>
+          <span class="mock-link">Guide</span>
+          <div class="ml"><span class="mock-link">🔔</span><span class="mock-link">⚙</span></div>
+        </div>
+        <table class="tbl mt8">
+          <thead><tr><th>Link</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Matrix</strong></td><td>Your main task board</td></tr>
+            <tr><td><strong>Stats</strong></td><td>Dashboard with charts &amp; KPIs</td></tr>
+            <tr><td><strong>Guide</strong></td><td>This handbook (opens new tab)</td></tr>
+            <tr><td>🔔 Bell</td><td>Email reminder settings</td></tr>
+            <tr><td>⚙ Gear</td><td>App settings &amp; categories</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <p>Every day at work, you probably have a long list of things to do. Some of them feel urgent. Some of them are truly important for your job or your team. Some of them are both. Some of them are neither.</p>
+    <h3>The Matrix Board</h3>
+    <p style="color:var(--text);font-size:13px;margin-bottom:12px;">
+      When you log in you'll see four boxes arranged in a 2×2 grid — one for each quadrant.
+      Each box shows the tasks that belong there. You can see all tasks at once, search
+      across all boxes, and drag tasks from one box to another.
+    </p>
+    <table class="tbl">
+      <thead><tr><th>Area / Feature</th><th>Where to find it</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td>Search bar</td><td>Top of the page, center</td><td>Instantly filters tasks by keyword across all quadrants</td></tr>
+        <tr><td>+ Add Task button</td><td>Inside each quadrant header</td><td>Opens the form to create a new task in that quadrant</td></tr>
+        <tr><td>Task card</td><td>Inside each quadrant</td><td>Shows task text, category tag, due date, and assignee</td></tr>
+        <tr><td>Completed tasks</td><td>Bottom of each quadrant</td><td>Shown with a strikethrough; can be cleared all at once</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">3</div>
+</div>
 
-    <p>The Eisenhower Matrix is a simple tool that helps you sort all your tasks by asking just two questions:</p>
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 4 — MANAGING TASKS
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Managing <span>Tasks</span></div>
 
-    <div class="quadrant-cards">
-      <div style="background:#e8f0fe; border-radius:12px; padding:18px; border-left:4px solid #4a80e4;">
-        <strong style="color:#00205B;">Question 1: Is it URGENT?</strong>
-        <p style="font-size:13px; color:#1a3170; margin-top:8px;">Does this need to happen today or very soon? Will something bad happen if you don't deal with it right now? For example: a machine has broken down, a meeting is in one hour, a manager needs an answer before noon.</p>
-        <p style="font-size:13px; color:#1a3170; margin-top:4px;">Urgent = it is pressing on you right now, demanding your attention.</p>
+    <div class="cols">
+      <div>
+        <h3>Adding a Task</h3>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click the <strong>+</strong> button in the quadrant where the task belongs.</span></li>
+          <li><span class="sn">2</span><span>Type your task description in the text box that appears.</span></li>
+          <li><span class="sn">3</span><span>Optionally pick a <strong>Category</strong> (tag), a <strong>Due Date</strong>, and an <strong>Assignee</strong> (person).</span></li>
+          <li><span class="sn">4</span><span>Press <strong>Enter</strong> or click the blue tick (✓) to save.</span></li>
+        </ul>
+        <div class="tip mt8">
+          <span class="tip-icon">💡</span>
+          <span>Write tasks as actions: "Call supplier" not "Supplier".</span>
+        </div>
+
+        <h3>Completing a Task</h3>
+        <ul class="steps">
+          <li><span class="sn green">1</span><span>Click the <strong>circle checkbox</strong> on the left of any task card.</span></li>
+          <li><span class="sn green">2</span><span>The task text will get a strikethrough — it's marked done!</span></li>
+          <li><span class="sn green">3</span><span>Click the circle again to un-complete it.</span></li>
+        </ul>
       </div>
-      <div style="background:#e8f0fe; border-radius:12px; padding:18px; border-left:4px solid #4a80e4;">
-        <strong style="color:#00205B;">Question 2: Is it IMPORTANT?</strong>
-        <p style="font-size:13px; color:#1a3170; margin-top:8px;">Will this task have a real, lasting impact if you do it — or real, lasting consequences if you don't? Important tasks are connected to your goals, your team's success, or your own growth.</p>
-        <p style="font-size:13px; color:#1a3170; margin-top:4px;">Important = it genuinely matters for your work or career, even if no one is calling you about it right now.</p>
+      <div>
+        <h3>Editing a Task</h3>
+        <ul class="steps">
+          <li><span class="sn red">1</span><span>Click anywhere on a task card (not the checkbox) to open it.</span></li>
+          <li><span class="sn red">2</span><span>An edit form opens — change the text, quadrant, category, due date, or assignee.</span></li>
+          <li><span class="sn red">3</span><span>Click <strong>Save</strong> to apply changes.</span></li>
+        </ul>
+
+        <h3 class="mt12">Deleting a Task</h3>
+        <ul class="steps">
+          <li><span class="sn red">1</span><span>Open the task by clicking it.</span></li>
+          <li><span class="sn red">2</span><span>Click the red <strong>Delete</strong> button in the edit modal.</span></li>
+          <li><span class="sn red">3</span><span>Confirm deletion in the pop-up that appears. <em>This cannot be undone.</em></span></li>
+        </ul>
+
+        <h3 class="mt12">Clearing Completed Tasks</h3>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>In the settings panel (⚙), find <strong>Clear Done Tasks</strong>.</span></li>
+          <li><span class="sn">2</span><span>Choose to clear done tasks from one quadrant or all quadrants at once.</span></li>
+        </ul>
       </div>
     </div>
 
-    <h3>The Four Combinations</h3>
-    <p>When you combine the two questions, you get four possible answers. Each combination has its own box — called a quadrant — and its own action:</p>
+    <div class="warn mt16">
+      <span class="warn-icon">⚠️</span>
+      <span><strong>Remember:</strong> Deleting a task is permanent. If you just finished something, tick the checkbox instead of deleting it — completed tasks count in your Stats.</span>
+    </div>
 
-    <table class="quadrant-table">
+    <h3 class="mt16">Recurring Tasks</h3>
+    <p style="color:var(--text);font-size:13px;">When editing a task, you can set a <strong>Recurrence</strong> (Daily, Weekly, Monthly). When you tick a recurring task as done, it automatically reappears the next day/week/month so you never forget regular duties.</p>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">4</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 5 — MOVING TASKS + CATEGORIES
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Moving Tasks &amp; <span>Categories</span></div>
+
+    <div class="cols">
+      <div>
+        <h3>Moving a Task Between Quadrants</h3>
+        <p style="color:var(--text);font-size:13px;margin-bottom:10px;">Priorities change. You can re-classify a task two ways:</p>
+
+        <h4>Method 1 — Drag &amp; Drop</h4>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click and hold a task card.</span></li>
+          <li><span class="sn">2</span><span>Drag it over the quadrant you want to move it to (it will highlight).</span></li>
+          <li><span class="sn">3</span><span>Release to drop. The task moves instantly.</span></li>
+        </ul>
+
+        <h4 class="mt12">Method 2 — Edit Modal</h4>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click the task card to open the edit form.</span></li>
+          <li><span class="sn">2</span><span>Change the <strong>Quadrant</strong> dropdown.</span></li>
+          <li><span class="sn">3</span><span>Click <strong>Save</strong>.</span></li>
+        </ul>
+
+        <div class="tip mt12">
+          <span class="tip-icon">📊</span>
+          <span>Every move is logged automatically. You can see your quadrant movement history in the Stats dashboard.</span>
+        </div>
+      </div>
+      <div>
+        <h3>Categories</h3>
+        <p style="color:var(--text);font-size:13px;margin-bottom:10px;">Categories are coloured labels (like "Finance", "HR", "Operations") that help you group and filter tasks.</p>
+
+        <h4>Creating a Category</h4>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click the ⚙ <strong>Settings</strong> icon in the top-right.</span></li>
+          <li><span class="sn">2</span><span>Go to the <strong>Categories</strong> section.</span></li>
+          <li><span class="sn">3</span><span>Type a name and pick a colour, then click <strong>Add</strong>.</span></li>
+        </ul>
+
+        <h4 class="mt12">Using a Category</h4>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>When adding or editing a task, select a category from the dropdown.</span></li>
+          <li><span class="sn">2</span><span>A coloured tag appears on the task card.</span></li>
+        </ul>
+
+        <h4 class="mt12">Filtering by Category</h4>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click a category button above the matrix grid to show only tasks with that category.</span></li>
+          <li><span class="sn">2</span><span>Click <strong>All</strong> to remove the filter.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="mt16">Due Dates &amp; Reminders</h3>
+    <div class="cols3" style="margin-top:8px;">
+      <div class="card" style="margin:0;padding:14px;">
+        <div style="font-weight:700;color:var(--navy);font-size:13px;">Set a Due Date</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Pick a date when adding or editing any task. Tasks with dates show the date on their card.</div>
+      </div>
+      <div class="card" style="margin:0;padding:14px;border-top:2px solid var(--red);">
+        <div style="font-weight:700;color:var(--red);font-size:13px;">Overdue Warning</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">If a task is past its due date, the date shows in red automatically.</div>
+      </div>
+      <div class="card" style="margin:0;padding:14px;border-top:2px solid var(--green);">
+        <div style="font-weight:700;color:var(--green);font-size:13px;">Email Reminders</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">Click 🔔 to configure a daily digest email of your pending tasks.</div>
+      </div>
+    </div>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">5</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 6 — DELEGATION (PEOPLE SYSTEM)
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Delegation &amp; <span>People</span></div>
+
+    <p style="color:var(--text);font-size:13.5px;margin-bottom:14px;">
+      The <strong>Delegate quadrant (Q3)</strong> is where tasks live that someone else should handle.
+      Matrix lets you assign any task to a specific person — so you always know who owns what.
+    </p>
+
+    <div class="cols">
+      <div>
+        <h3>Setting Up People</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">Before you can assign tasks, create the people you work with.</p>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click ⚙ <strong>Settings</strong> in the top-right.</span></li>
+          <li><span class="sn">2</span><span>Click <strong>Manage People</strong>.</span></li>
+          <li><span class="sn">3</span><span>Click <strong>+ Add Person</strong>, type their name, and save.</span></li>
+          <li><span class="sn">4</span><span>Each person gets a unique colour automatically.</span></li>
+        </ul>
+        <div class="tip mt12">
+          <span class="tip-icon">👤</span>
+          <span>Add yourself as a person and assign tasks to <em>Self</em> to track your own workload separately from delegated work.</span>
+        </div>
+
+        <h3 class="mt16">Assigning a Task</h3>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Open any task by clicking it.</span></li>
+          <li><span class="sn">2</span><span>In the edit form, find the <strong>Assignee</strong> field.</span></li>
+          <li><span class="sn">3</span><span>Select a person from the list.</span></li>
+          <li><span class="sn">4</span><span>Save the task — the person's name now appears on the task card.</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>How It Looks on a Task Card</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Once assigned, you'll see a small person icon + name on the task card:</p>
+
+        <div class="task-mock">
+          <div class="tm-dot"></div>
+          <div class="tm-text">Prepare monthly supplier report</div>
+          <div class="tm-chip">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="#00875A"><circle cx="6" cy="3.5" r="2.3"/><path d="M1.5 11c0-2.4 2-3.8 4.5-3.8s4.5 1.4 4.5 3.8z"/></svg>
+            Ravi Kumar
+          </div>
+        </div>
+        <div class="task-mock">
+          <div class="tm-dot done"></div>
+          <div class="tm-text" style="text-decoration:line-through;color:var(--muted);">Send budget update</div>
+          <div class="tm-chip" style="color:var(--muted);">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="#9BAABB"><circle cx="6" cy="3.5" r="2.3"/><path d="M1.5 11c0-2.4 2-3.8 4.5-3.8s4.5 1.4 4.5 3.8z"/></svg>
+            Priya Singh
+          </div>
+        </div>
+
+        <h3 class="mt16">Why Delegation Matters</h3>
+        <table class="tbl">
+          <thead><tr><th>Situation</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Task needs someone else's skill</td><td>Move to Q3 + Assign person</td></tr>
+            <tr><td>You're bottlenecked by one person</td><td>Check Top Assignee KPI in Stats</td></tr>
+            <tr><td>Q3 tasks have no owner</td><td>Assign immediately — unowned Q3 is a gap</td></tr>
+            <tr><td>Want to review delegated work</td><td>Filter by person in Stats → People chart</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">6</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 7 — STATS DASHBOARD — KPIs
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Stats Dashboard — <span>KPIs</span></div>
+
+    <p style="color:var(--text);font-size:13px;margin-bottom:14px;">
+      The <strong>Stats page</strong> shows 13 KPIs (Key Performance Indicators). By default only 4 are shown —
+      click <strong>Customise</strong> to choose which 4 you want on your dashboard. Here is what every KPI means:
+    </p>
+
+    <table class="tbl">
       <thead>
-        <tr>
-          <th class="axis-cell"></th>
-          <th class="axis-cell">URGENT</th>
-          <th class="axis-cell">NOT URGENT</th>
-        </tr>
+        <tr><th style="width:30%">KPI Name</th><th style="width:45%">What it measures</th><th>Aim for</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge n">Total Tasks</span></td><td>All tasks you have ever created (open + done)</td><td>—</td></tr>
+        <tr><td><span class="badge g">Completed</span></td><td>Tasks you've ticked as done</td><td>As high as possible</td></tr>
+        <tr><td><span class="badge r">Completion Rate</span></td><td>% of tasks that are done</td><td>Above 70 %</td></tr>
+        <tr><td><span class="badge r">Q1 (Do First)</span></td><td>Open urgent &amp; important tasks right now</td><td>Below 5</td></tr>
+        <tr><td><span class="badge n">Q2 (Schedule)</span></td><td>Open important tasks planned for later</td><td>Your largest group</td></tr>
+        <tr><td><span class="badge g">Q3 (Delegate)</span></td><td>Open tasks assigned to others</td><td>All should have an owner</td></tr>
+        <tr><td><span class="badge a">Q4 (Eliminate)</span></td><td>Open low-value tasks</td><td>Below 3</td></tr>
+        <tr><td><span class="badge n">Overdue</span></td><td>Tasks past their due date</td><td>Zero</td></tr>
+        <tr><td>Quadrant Moves</td><td>Total times you've moved a task between quadrants</td><td>Shows how actively you re-prioritise</td></tr>
+        <tr><td><span class="badge r">Escalated to Q1</span></td><td>How many tasks were moved <em>into</em> Q1 (urgency spikes)</td><td>Low (means fewer crises)</td></tr>
+        <tr><td><span class="badge g">Tasks Delegated</span></td><td>Open Q3 tasks with a named assignee</td><td>Match total Q3 count</td></tr>
+        <tr><td><span class="badge a">Undelegated Q3</span></td><td>Open Q3 tasks with <em>no</em> owner — an oversight risk</td><td>Zero</td></tr>
+        <tr><td><span class="badge n">Top Assignee</span></td><td>The person with the most open tasks assigned to them</td><td>Balanced across team</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip mt12">
+      <span class="tip-icon">⚙️</span>
+      <span>Click <strong>Customise KPIs</strong> on the Stats page to choose your 4 favourite KPIs. Your choice is saved automatically for next time.</span>
+    </div>
+  </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">7</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 8 — STATS DASHBOARD — CHARTS
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Stats Dashboard — <span>Charts</span></div>
+
+    <p style="font-size:13px;color:var(--text);margin-bottom:14px;">
+      The Stats page includes 8 charts. Like KPIs, you can display any 2 charts at once — click
+      <strong>Customise Charts</strong> to choose. Here is what each chart shows:
+    </p>
+
+    <table class="tbl" style="margin-bottom:16px;">
+      <thead>
+        <tr><th style="width:28%">Chart</th><th style="width:42%">What it shows</th><th>How to use it</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td class="axis-cell">IMPORTANT</td>
-          <td class="q1-cell q-header">Q1 — DO FIRST<br/><span style="font-weight:400; font-size:12px; opacity:0.9;">Do it today. These are on fire.</span></td>
-          <td class="q2-cell q-header">Q2 — SCHEDULE<br/><span style="font-weight:400; font-size:12px; opacity:0.9;">Plan a time and do it properly.</span></td>
+          <td><strong>Quadrant Distribution</strong></td>
+          <td>Doughnut chart showing how many open tasks sit in each quadrant</td>
+          <td>Are you over-loaded in Q1 (red)? Time to re-classify.</td>
         </tr>
         <tr>
-          <td class="axis-cell">NOT IMPORTANT</td>
-          <td class="q3-cell q-header">Q3 — DELEGATE<br/><span style="font-weight:400; font-size:12px; opacity:0.9;">Give it to someone else.</span></td>
-          <td class="q4-cell q-header">Q4 — ELIMINATE<br/><span style="font-weight:400; font-size:12px; opacity:0.9;">Ask if it even needs doing.</span></td>
+          <td><strong>Completion Over Time</strong></td>
+          <td>Bar chart of tasks completed each day over the last 14 days</td>
+          <td>Spot your most productive days and dips.</td>
+        </tr>
+        <tr>
+          <td><strong>Category Breakdown</strong></td>
+          <td>Horizontal bars — tasks per category</td>
+          <td>See which work area has the most load.</td>
+        </tr>
+        <tr>
+          <td><strong>Task Age</strong></td>
+          <td>How long open tasks have been sitting (0-3 days, 4-7, 8-14, 15+ days)</td>
+          <td>Tasks older than 7 days probably need a decision.</td>
+        </tr>
+        <tr>
+          <td><strong>Overdue by Quadrant</strong></td>
+          <td>Bar chart of overdue tasks split by quadrant</td>
+          <td>Q2 overdue = you didn't schedule; Q1 overdue = crisis mode.</td>
+        </tr>
+        <tr>
+          <td><strong>Weekly Rhythm</strong></td>
+          <td>Tasks added and completed per day of the week (Mon-Sun average)</td>
+          <td>Find your peak productivity day.</td>
+        </tr>
+        <tr>
+          <td><strong>Quadrant Flow</strong></td>
+          <td>Horizontal bars showing which quadrant-to-quadrant moves happen most</td>
+          <td>Lots of moves into Q1? You're not planning enough in Q2.</td>
+        </tr>
+        <tr>
+          <td><strong>Tasks by Person</strong></td>
+          <td>Grouped bars showing open vs done tasks per person</td>
+          <td>Check workload balance across your team.</td>
         </tr>
       </tbody>
     </table>
 
-    <h3>A Real-World Example</h3>
-    <p>Imagine you work at a Maruti Suzuki plant. Here is how some typical tasks might be sorted:</p>
-    <ul>
-      <li><strong>A production line has stopped and needs your sign-off to restart</strong> — Urgent AND Important → <span class="ui-label red">Q1 Do First</span></li>
-      <li><strong>You need to prepare a skills development plan for your team this quarter</strong> — Important but NOT Urgent yet → <span class="ui-label">Q2 Schedule</span></li>
-      <li><strong>Someone needs you to fill in a routine attendance register that another team member can also fill</strong> — Urgent but NOT Important to YOU specifically → <span class="ui-label green">Q3 Delegate</span></li>
-      <li><strong>Reading a long email newsletter about industry gossip</strong> — Neither Urgent nor Important → <span class="ui-label grey">Q4 Eliminate</span></li>
-    </ul>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Many people spend their whole day in Q1 (putting out fires) and never get to Q2 (planning and growth). The Eisenhower Matrix helps you see this pattern and fix it. If you protect time for Q2 tasks, fewer things will become Q1 emergencies in the first place.
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>Charts update in real time as you add and complete tasks. No need to refresh the page.</span>
     </div>
   </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">8</div>
+</div>
 
-  <!-- ═══════════════════════════════════════ SECTION 2 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">02</div>
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 9 — EXCEL EXPORT + SETTINGS + MOBILE
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Export, Settings &amp; <span>Mobile</span></div>
+
+    <div class="cols">
       <div>
-        <div class="section-title">What Is the Matrix App?</div>
-        <div class="section-subtitle">Your digital Eisenhower Matrix — always with you, always up to date</div>
-      </div>
-    </div>
-
-    <p>The Matrix app is a website that brings the Eisenhower Matrix to life on your screen. Instead of drawing boxes on paper, you use the app to type your tasks in and it organises them into the correct quadrant for you.</p>
-
-    <div class="feature-row">
-      <div class="feature-icon">&#x1F4CB;</div>
-      <div class="feature-text">
-        <strong>Organise tasks into four quadrants</strong>
-        <p>Each task lives in one of the four boxes — Do First, Schedule, Delegate, or Eliminate. You can move tasks between boxes at any time.</p>
-      </div>
-    </div>
-    <div class="feature-row">
-      <div class="feature-icon">&#x2601;&#xFE0F;</div>
-      <div class="feature-text">
-        <strong>Everything saves automatically to the cloud</strong>
-        <p>You do not need to press a "Save" button. Every change you make is saved instantly to the internet. If you close the app and come back tomorrow, all your tasks will still be there.</p>
-      </div>
-    </div>
-    <div class="feature-row">
-      <div class="feature-icon">&#x1F4BB;</div>
-      <div class="feature-text">
-        <strong>Works on computer and mobile phone</strong>
-        <p>Open the app on your work computer in the morning and check it on your phone during a factory walk. Your tasks are the same everywhere because they are stored in the cloud.</p>
-      </div>
-    </div>
-    <div class="feature-row">
-      <div class="feature-icon">&#x1F4CA;</div>
-      <div class="feature-text">
-        <strong>Statistics Dashboard</strong>
-        <p>See charts and numbers about your productivity — how many tasks you complete each week, how long tasks take, and whether your Q1 pile is growing or shrinking.</p>
-      </div>
-    </div>
-    <div class="feature-row">
-      <div class="feature-icon">&#x1F4E7;</div>
-      <div class="feature-text">
-        <strong>Email reminders</strong>
-        <p>The app can send you an email listing all your urgent (Q1) tasks, so you never forget what needs to be done today.</p>
-      </div>
-    </div>
-    <div class="feature-row">
-      <div class="feature-icon">&#x1F512;</div>
-      <div class="feature-text">
-        <strong>Maruti Suzuki accounts only</strong>
-        <p>Only email addresses ending in <code>@maruti.co.in</code> can sign in. This keeps your company's task information private and secure.</p>
-      </div>
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> You do not need to install anything on your computer. The Matrix app opens inside your web browser — the same program you use to search the internet. Just go to the web address your IT team has provided.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 3 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">03</div>
-      <div>
-        <div class="section-title">Signing In for the First Time</div>
-        <div class="section-subtitle">How to open the app and get to your task board</div>
-      </div>
-    </div>
-
-    <p>Before you can use the Matrix app, you need to sign in. This proves to the app that you are a real Maruti Suzuki employee and that the tasks it shows you are yours and only yours.</p>
-
-    <h3>Steps to Sign In</h3>
-    <ol class="step-list">
-      <li><p><strong>Open your web browser.</strong> Look for Google Chrome, Microsoft Edge, or Safari on your computer. Double-click to open it. You will see an address bar at the very top of the screen — this is where you type website addresses.</p></li>
-      <li><p><strong>Go to the Matrix website.</strong> Click in the address bar at the top of the browser window. Type the web address that your IT team or manager has given you, then press the Enter key on your keyboard.</p></li>
-      <li><p><strong>The login screen appears.</strong> You will see a clean page with the Matrix logo and two boxes asking for your email address and password.</p></li>
-      <li><p><strong>Type your email address.</strong> Click inside the first box (labelled "Email") and type your Maruti Suzuki email address. For example: <code>firstname.lastname@maruti.co.in</code>. Make sure it ends in <code>@maruti.co.in</code>.</p></li>
-      <li><p><strong>Type your password.</strong> Click inside the second box (labelled "Password") and type your password. The letters will appear as dots so that no one watching can read it.</p></li>
-      <li><p><strong>Click the "Sign In" button.</strong> Look for a navy blue button that says "Sign In" and click it once. Wait a few seconds.</p></li>
-      <li><p><strong>The main screen appears.</strong> You are now inside the Matrix app. You will see a dark navy bar at the top and four coloured boxes below it. These are your four quadrants and they are ready to use.</p></li>
-    </ol>
-
-    <div class="warn-box">
-      <strong>Important:</strong> Your email must end in <code>@maruti.co.in</code>. If you try to sign in with a Gmail, Yahoo, or personal email address, the app will reject it. Contact your IT team if you are not sure which email address to use.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> If you are on your own work computer and no one else uses it, you can allow the browser to remember your password. Look for the option that says "Remember this password" or "Save password" when you sign in. This saves you typing it every time.
-    </div>
-
-    <h3>What If I Forget My Password?</h3>
-    <p>Look for a "Forgot password?" link on the login screen. If it is not there, contact your IT helpdesk team. They will be able to reset it for you. Do not share your password with anyone else.</p>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 4 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">04</div>
-      <div>
-        <div class="section-title">The Main Screen — What You Are Looking At</div>
-        <div class="section-subtitle">A tour of every part of the app's interface</div>
-      </div>
-    </div>
-
-    <p>When you first sign in, the main screen can look like a lot of information at once. Do not worry. This section explains every part of it, one piece at a time.</p>
-
-    <h3>The Top Bar (Navy Bar at the Very Top)</h3>
-    <p>The dark navy bar that runs across the very top of the screen is called the "top bar" or "navigation bar". It contains several items:</p>
-    <ul>
-      <li><strong>The Matrix logo and name</strong> (far left) — The four-square logo and the word "Matrix". Clicking it always takes you back to the main task board.</li>
-      <li><strong>Stats link</strong> — A text link that takes you to the Statistics Dashboard page, where you can see charts and numbers about your tasks.</li>
-      <li><strong>Search box</strong> — A long rectangular box in the middle of the bar with a small magnifying glass icon. Type here to search for any task by name.</li>
-      <li><strong>Bell icon (&#x1F514;)</strong> — Opens the email reminders settings.</li>
-      <li><strong>Person/group icon</strong> — Opens the "Manage people" panel where you can add names for delegation.</li>
-      <li><strong>Gear icon (&#x2699;)</strong> — Opens the "Manage categories" panel.</li>
-      <li><strong>Clear done button</strong> — Removes all completed tasks in one click.</li>
-      <li><strong>Your account / Sign out</strong> — Usually shown as your email address or a person icon. Click here to sign out.</li>
-    </ul>
-
-    <h3>The Four Quadrant Boxes</h3>
-    <p>Below the top bar, the screen is divided into four boxes arranged in a 2-by-2 grid. Each box is one quadrant:</p>
-
-    <div class="quadrant-cards">
-      <div class="q-card q1">
-        <h4>Q1 — Do First (Red, top-left)</h4>
-        <p>Tasks that are urgent and important. These need your attention today.</p>
-      </div>
-      <div class="q-card q2">
-        <h4>Q2 — Schedule (Navy, top-right)</h4>
-        <p>Tasks that are important but not urgent. Plan a time for these.</p>
-      </div>
-      <div class="q-card q3">
-        <h4>Q3 — Delegate (Green, bottom-left)</h4>
-        <p>Tasks that are urgent but not important to you. Hand these off.</p>
-      </div>
-      <div class="q-card q4">
-        <h4>Q4 — Eliminate (Grey, bottom-right)</h4>
-        <p>Tasks that are neither urgent nor important. Question if they are needed.</p>
-      </div>
-    </div>
-
-    <h3>Inside Each Quadrant Box</h3>
-    <p>Every quadrant box has the same layout:</p>
-    <ul>
-      <li><strong>Coloured header strip at the top</strong> — Shows the quadrant name (e.g. "Do First") and a count like <code>2/5</code>, meaning 2 out of 5 tasks are completed.</li>
-      <li><strong>Expand icon</strong> — A small icon in the top-left corner of the header. Click it to make this quadrant fill the whole screen.</li>
-      <li><strong>Task cards in the body area</strong> — Each task you add appears here as a card. The card shows the task name, a coloured category label, and action buttons.</li>
-      <li><strong>"+ Add task" button</strong> — At the bottom (or top) of each quadrant. Click it to add a new task to that specific quadrant.</li>
-    </ul>
-
-    <h3>On a Mobile Phone</h3>
-    <p>On a small screen, the app cannot show all four quadrants at the same time. Instead, it shows one quadrant at a time. At the very bottom of the phone screen you will see four tab buttons labelled "Do First", "Schedule", "Delegate", and "Eliminate". Tap any of these buttons to switch to that quadrant. Everything else works the same way as on a computer.</p>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> If the screen looks blank or you cannot see your quadrants, try scrolling down slightly. On some screens, the top bar takes up more space and you need to scroll just a little to see the quadrant grid.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 5 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">05</div>
-      <div>
-        <div class="section-title">The Four Quadrants — Understanding Each One</div>
-        <div class="section-subtitle">What each quadrant means and when to put tasks there</div>
-      </div>
-    </div>
-
-    <p>Before you start adding tasks, it helps to understand exactly what each quadrant means. This is the most important section in this guide. Once you understand the four quadrants well, the whole app will feel natural.</p>
-
-    <!-- Q1 -->
-    <div style="border-left: 5px solid var(--red); padding-left: 20px; margin: 28px 0;">
-      <h3 style="color: var(--red); margin-top:0;">Q1 — DO FIRST (Red)</h3>
-      <p><strong>These tasks are URGENT and IMPORTANT.</strong> They are on fire right now. If you do not handle them today, something will go wrong. These are your top priority every single morning.</p>
-      <p>Ask yourself: "Is this both pressing AND genuinely important for my work?" If yes, it belongs in Q1.</p>
-      <p><strong>Examples at Maruti Suzuki:</strong></p>
-      <ul>
-        <li>A production line stoppage that only you can authorise to fix</li>
-        <li>A report due to a senior manager within the next two hours</li>
-        <li>An urgent call from a dealer about a critical vehicle defect</li>
-        <li>A safety inspection that must be completed before the shift starts</li>
-        <li>A deadline that is today and has not been started yet</li>
-      </ul>
-      <div class="warn-box">
-        <strong>Warning:</strong> If your Q1 always has more than 10 tasks, something is wrong. Either you are putting tasks that belong in Q2 into Q1, or you are not delegating Q3 tasks to others. Review Section 20 on daily best practices.
-      </div>
-    </div>
-
-    <!-- Q2 -->
-    <div style="border-left: 5px solid var(--navy); padding-left: 20px; margin: 28px 0;">
-      <h3 style="color: var(--navy); margin-top:0;">Q2 — SCHEDULE (Navy)</h3>
-      <p><strong>These tasks are IMPORTANT but NOT URGENT.</strong> Nobody is calling you about them right now, but they will make a real difference to your work and career. Q2 is where your best, most thoughtful work happens.</p>
-      <p>Ask yourself: "Is this important for my long-term goals or my team's performance, even if it is not due today?" If yes, it belongs in Q2. Pick a date and protect time to do it properly.</p>
-      <p><strong>Examples at Maruti Suzuki:</strong></p>
-      <ul>
-        <li>Preparing a training module for your team</li>
-        <li>Doing a process improvement review for a production line</li>
-        <li>Writing a strategic plan for the next quarter</li>
-        <li>Learning a new software tool that will make your work faster</li>
-        <li>Building a dashboard for your manager before year-end review</li>
-        <li>Documenting a process so your team can follow it without you</li>
-      </ul>
-      <div class="tip-box">
-        <strong>Tip:</strong> Most people skip Q2 because there is no urgency pressure. But these are the tasks that build your future. Try to spend at least 30 minutes every day working on a Q2 task, even when Q1 tasks are demanding your attention.
-      </div>
-    </div>
-
-    <!-- Q3 -->
-    <div style="border-left: 5px solid var(--green); padding-left: 20px; margin: 28px 0;">
-      <h3 style="color: var(--green); margin-top:0;">Q3 — DELEGATE (Green)</h3>
-      <p><strong>These tasks are URGENT but NOT IMPORTANT to you specifically.</strong> They need to happen soon, but you are not the right person to do them — or they can be handled by someone else without your personal involvement.</p>
-      <p>Ask yourself: "Does this really need to be done by me, or can another person handle it just as well?" If someone else can do it, put it in Q3 and assign it to them.</p>
-      <p><strong>Examples at Maruti Suzuki:</strong></p>
-      <ul>
-        <li>A routine attendance report that any team member can complete</li>
-        <li>A meeting you have been invited to but do not need to attend personally — send a team member instead</li>
-        <li>An email response that a colleague can answer on your behalf</li>
-        <li>A logistics coordination task that another department handles</li>
-        <li>A data entry job that an assistant can do</li>
-      </ul>
-      <div class="tip-box">
-        <strong>Tip:</strong> Delegation is not laziness — it is good management. When you delegate, you give others an opportunity to grow. Use the Delegate feature (Section 13) to track who is handling what.
-      </div>
-    </div>
-
-    <!-- Q4 -->
-    <div style="border-left: 5px solid var(--grey); padding-left: 20px; margin: 28px 0;">
-      <h3 style="color: #5a6a80; margin-top:0;">Q4 — ELIMINATE (Grey)</h3>
-      <p><strong>These tasks are NEITHER URGENT NOR IMPORTANT.</strong> They are time-wasters. Before you even put a task here, ask yourself whether it needs to exist at all. If you do keep a task in Q4, it is a reminder to question it.</p>
-      <p>Ask yourself: "What actually happens if I never do this task?" If the honest answer is "nothing much", then consider not doing it.</p>
-      <p><strong>Examples at Maruti Suzuki:</strong></p>
-      <ul>
-        <li>Attending a meeting that has no agenda and produces no decisions</li>
-        <li>Preparing a report that no one reads</li>
-        <li>Responding to emails that do not require a reply</li>
-        <li>Reviewing documents you do not use</li>
-        <li>Organising files in folders that are never opened</li>
-      </ul>
-      <div class="tip-box">
-        <strong>Tip:</strong> If a Q4 task has been sitting on your board for two weeks without being touched, that is a strong signal that it should be deleted entirely. See Section 9 for how to delete a task.
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 6 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">06</div>
-      <div>
-        <div class="section-title">Adding a Task</div>
-        <div class="section-subtitle">How to type a new task into any quadrant</div>
-      </div>
-    </div>
-
-    <p>Adding a task is the most common thing you will do in the app. You can add a task to any of the four quadrants at any time.</p>
-
-    <h3>Steps to Add a Task</h3>
-    <ol class="step-list">
-      <li><p><strong>Decide which quadrant the task belongs in.</strong> Use the two questions from Section 1 to decide: Is it urgent? Is it important? Then go to the correct quadrant box on screen.</p></li>
-      <li><p><strong>Click the "+ Add task" button.</strong> This button appears at the bottom (or top) of the quadrant box. Click it once. A small input area will appear inside the quadrant.</p></li>
-      <li><p><strong>Type the task name.</strong> Click inside the text box and type a short, clear description of the task. For example: "Submit Q3 production report to Mr Sharma". This field is required — you cannot add a task without a name.</p></li>
-      <li><p><strong>Type an optional Note (if needed).</strong> Below the task name box, there is a smaller "Note" box. This is optional. You can use it to add extra details, a link, or a reminder to yourself. For example: "Check the shared drive for the template first".</p></li>
-      <li><p><strong>Choose a Category.</strong> Look for a dropdown that says "Category" (or shows a coloured dot). Click it to see the available categories (such as "Work", "Personal", "Health", "Other"). Click the one that best fits your task. This adds a coloured label to the task card.</p></li>
-      <li><p><strong>For Q3 tasks only: choose who to Delegate to.</strong> If you are adding a task to the Q3 Delegate quadrant, you will also see a "Delegate to" dropdown. Click it and choose the person's name from the list. (See Section 13 for how to add people to this list.)</p></li>
-      <li><p><strong>Click "Add" or press Enter.</strong> Look for the blue "Add" button and click it. Alternatively, simply press the Enter key on your keyboard. The task will appear in the quadrant immediately.</p></li>
-    </ol>
-
-    <div class="warn-box">
-      <strong>Warning:</strong> The task name cannot be left empty. If you click "Add" without typing anything in the name box, the app will show a warning message and the task will not be saved. Type at least a few words describing what needs to be done.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Write task names as clear actions starting with a verb. Instead of "Report", write "Submit weekly production report to manager". This makes it obvious what you need to do when you look at the task later. Aim to write tasks you can complete in one sitting.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 7 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">07</div>
-      <div>
-        <div class="section-title">Completing a Task</div>
-        <div class="section-subtitle">Marking a task as done when you finish it</div>
-      </div>
-    </div>
-
-    <p>When you finish a task, you tell the app it is done by checking it off. This is one of the most satisfying things you can do in the app — it shows you that your work is making progress.</p>
-
-    <h3>Steps to Complete a Task</h3>
-    <ol class="step-list">
-      <li><p><strong>Find the task you have finished.</strong> Look for it in the correct quadrant. Task cards are listed in the order they were added.</p></li>
-      <li><p><strong>Click the circle on the left side of the task.</strong> Every task card has a small circle (like an empty checkbox) on its left edge. Click it once.</p></li>
-      <li><p><strong>The task is marked done.</strong> The task's text will appear with a strikethrough (a line drawn through it), and the circle will become filled or turn into a tick mark. This is the visual sign that the task is complete.</p></li>
-      <li><p><strong>The count at the top of the quadrant updates.</strong> Look at the coloured header of the quadrant. You will see a number like <code>1/3</code>, which means 1 out of 3 tasks in this quadrant are done. It updates instantly every time you check off a task.</p></li>
-    </ol>
-
-    <h3>Can I Undo a Completed Task?</h3>
-    <p>Yes. If you checked a task by mistake, just click the circle again. The strikethrough will disappear and the task will return to its uncompleted state. You can do this as many times as you like.</p>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> At the start of every morning, open the app and focus on the Q1 (Do First) quadrant. Complete the most urgent task on the list before you check emails or go to meetings. This habit — called "eating the frog" — ensures the most important work gets done no matter how busy your day becomes.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 8 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">08</div>
-      <div>
-        <div class="section-title">Editing a Task</div>
-        <div class="section-subtitle">Changing a task's name, details, or which quadrant it belongs in</div>
-      </div>
-    </div>
-
-    <p>Things change. A task that was not urgent yesterday may be urgent today. Or you may have mistyped the task name and want to fix it. Editing lets you update any task at any time.</p>
-
-    <h3>Steps to Edit a Task</h3>
-    <ol class="step-list">
-      <li><p><strong>Find the task you want to change.</strong> Look for it in the quadrant where it currently lives.</p></li>
-      <li><p><strong>Hover your mouse over the task card (on desktop).</strong> When your mouse pointer moves over a task card, a small set of action icons will appear on the right side of the card. On a mobile phone, these icons are always visible — no hovering needed.</p></li>
-      <li><p><strong>Click the pencil icon (&#x270E;).</strong> Look for the pencil or edit icon on the right side of the task card. Click it once. An "Edit task" box (also called a dialog or modal) will pop up in the middle of your screen.</p></li>
-      <li><p><strong>Make your changes.</strong> In the edit box, you can change any of the following:
-        <ul style="margin-top:8px;">
-          <li><strong>Task name</strong> — Click on the name text and retype it</li>
-          <li><strong>Note</strong> — Add, remove, or change the note</li>
-          <li><strong>Category</strong> — Choose a different coloured label from the dropdown</li>
-          <li><strong>Move to quadrant</strong> — Choose a different quadrant (Q1, Q2, Q3, or Q4) from the dropdown to move the task</li>
-          <li><strong>Delegate to</strong> — For Q3 tasks, change who the task is assigned to</li>
+        <h3>Exporting to Excel</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">Download all your data as an Excel file (.xlsx) from the Stats page.</p>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Go to the <strong>Stats</strong> page.</span></li>
+          <li><span class="sn">2</span><span>Click the <strong>Export Excel</strong> button.</span></li>
+          <li><span class="sn">3</span><span>The file downloads automatically with three sheets:</span></li>
         </ul>
-      </p></li>
-      <li><p><strong>Click "Save changes".</strong> When you are done making changes, click the "Save changes" button. The task card will update immediately with the new information.</p></li>
-    </ol>
+        <table class="tbl mt8">
+          <thead><tr><th>Sheet</th><th>Contents</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tasks</strong></td><td>Every task — text, quadrant, category, status, dates</td></tr>
+            <tr><td><strong>Summary</strong></td><td>All 13 KPI values at time of export</td></tr>
+            <tr><td><strong>Quadrant Moves</strong></td><td>Full history of task movements with timestamps</td></tr>
+          </tbody>
+        </table>
+        <div class="tip mt12">
+          <span class="tip-icon">📥</span>
+          <span>Export weekly to keep a local backup or share your progress with your manager.</span>
+        </div>
 
-    <div class="tip-box">
-      <strong>Tip:</strong> Use the "Move to quadrant" option in the Edit box when a task has changed in urgency or importance. For example, if a Q2 task (important but not urgent) suddenly has a deadline moved to tomorrow, edit it and move it to Q1. This keeps your board accurate and up to date.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 9 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">09</div>
-      <div>
-        <div class="section-title">Deleting a Task</div>
-        <div class="section-subtitle">Permanently removing a task from your board</div>
-      </div>
-    </div>
-
-    <p>Sometimes a task no longer needs to exist. A project was cancelled, a meeting was removed from the calendar, or a task was added by mistake. You can delete any task permanently.</p>
-
-    <h3>Steps to Delete a Task</h3>
-    <ol class="step-list">
-      <li><p><strong>Find the task you want to remove.</strong> Locate it in its quadrant on the task board.</p></li>
-      <li><p><strong>Hover over the task card (on desktop) to reveal the action icons.</strong> On mobile, the icons are always visible.</p></li>
-      <li><p><strong>Click the &#x2715; button</strong> on the right side of the task card. This is the delete button. It usually appears as a small "X" or cross symbol.</p></li>
-      <li><p><strong>A confirmation box appears.</strong> The app will ask you: "Delete task?" and show you the task name. This is a safety check so you do not delete tasks by accident.</p></li>
-      <li><p><strong>Click "Delete" to confirm.</strong> If you are sure you want to remove the task, click the red "Delete" button. The task is immediately and permanently removed from your board.</p></li>
-      <li><p><strong>Click "Cancel" to go back.</strong> If you changed your mind, click "Cancel". The task will remain exactly as it was and nothing is deleted.</p></li>
-    </ol>
-
-    <div class="warn-box">
-      <strong>Warning:</strong> Deletion cannot be undone. Once you click "Delete" on the confirmation box, the task is gone permanently. There is no "Undo" button. If you are not sure, click "Cancel" instead. If you want to keep a record of your tasks before deleting, use the Excel Export feature described in Section 18.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Do not delete tasks just because they are hard or uncomfortable. Consider whether they should actually be in a different quadrant. Only delete a task if it genuinely no longer needs to exist.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 10 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">10</div>
-      <div>
-        <div class="section-title">Moving Tasks Between Quadrants</div>
-        <div class="section-subtitle">Drag and drop, or use the Edit box to reassign quadrants</div>
-      </div>
-    </div>
-
-    <p>As time passes, the urgency and importance of tasks changes. A task that was "Schedule" (Q2) on Monday might become "Do First" (Q1) by Thursday because the deadline is getting closer. Moving tasks between quadrants keeps your board accurate.</p>
-
-    <h3>Method 1: Drag and Drop (Desktop)</h3>
-    <ol class="step-list">
-      <li><p><strong>Move your mouse pointer over the task card</strong> you want to move. Wait until the cursor changes to a hand or a drag cursor (sometimes the card will show a "grip" icon on its left edge).</p></li>
-      <li><p><strong>Click and HOLD down the mouse button.</strong> Keep the button pressed down. Do not let go yet. The task card will appear to lift off the board slightly.</p></li>
-      <li><p><strong>While still holding, drag the card</strong> across the screen to a different quadrant box. Move your mouse slowly towards the quadrant you want to move the task into. The target quadrant will highlight to show where the card will land.</p></li>
-      <li><p><strong>Release the mouse button</strong> when you are over the correct quadrant. The task card will drop into that quadrant.</p></li>
-    </ol>
-
-    <h3>Method 2: Drag and Drop (Mobile Phone)</h3>
-    <ol class="step-list">
-      <li><p><strong>Press and hold your finger on the task card</strong> for about one second. You will feel a small vibration (if your phone has that setting on) and the card will appear to "lift" slightly, indicating it is ready to drag.</p></li>
-      <li><p><strong>While still pressing, slowly drag your finger</strong> across the screen. The app will show you which quadrant you are currently hovering over.</p></li>
-      <li><p><strong>Lift your finger</strong> when you are over the destination quadrant. The task will be placed there.</p></li>
-    </ol>
-
-    <h3>Method 3: Use the Edit Box</h3>
-    <p>If drag and drop feels difficult, you can always use the Edit box instead. Click the pencil icon on the task, then use the "Move to quadrant" dropdown to choose the destination quadrant, then click "Save changes". See Section 8 for full instructions on editing.</p>
-
-    <h3>Task Movement Is Recorded</h3>
-    <p>Every time you move a task from one quadrant to another, the app records this action with a date and time. You can see a log of all task movements in the Statistics Dashboard (Section 16) and in the Excel Export (Section 18). This can be useful for reviewing how tasks have evolved over time.</p>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Make a habit of reviewing and moving tasks every Monday morning. Ask yourself: "Have any Q2 tasks become urgent enough to move to Q1? Have any Q1 tasks been resolved so they can be archived?" A weekly review keeps your board reflecting reality.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 11 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">11</div>
-      <div>
-        <div class="section-title">Expanding a Quadrant (Full Screen View)</div>
-        <div class="section-subtitle">Zoom in on one quadrant when you have many tasks</div>
-      </div>
-    </div>
-
-    <p>When you have a lot of tasks in a single quadrant, the task cards might be cut off or require a lot of scrolling within the small quadrant box. The Expand feature lets you make one quadrant fill the whole screen so you can see all its tasks more easily.</p>
-
-    <h3>How to Expand a Quadrant</h3>
-    <ol class="step-list">
-      <li><p><strong>Look at the top-left corner</strong> of any quadrant box's coloured header strip. You will see a small icon there — it looks like two arrows pointing outward (or a square with an arrow), indicating "expand".</p></li>
-      <li><p><strong>Click that icon once.</strong> The quadrant will instantly expand to fill the entire screen area below the top bar. All the tasks inside it become much easier to read and manage.</p></li>
-      <li><p><strong>Work with your tasks normally</strong> in the expanded view. You can add, complete, edit, and delete tasks exactly as you would in the regular view.</p></li>
-      <li><p><strong>Click the same icon again to return</strong> to the normal four-quadrant grid view. The icon will now look like two arrows pointing inward (or a collapse symbol). Click it once and all four quadrants return to the screen.</p></li>
-    </ol>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> The expanded view is especially useful for Q1 (Do First) during a busy day. Expand Q1 in the morning, work through your urgent tasks, then collapse it again when you are ready to see the full board. It removes distraction and helps you focus on one thing at a time.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 12 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">12</div>
-      <div>
-        <div class="section-title">Categories — Colour-Coded Labels</div>
-        <div class="section-subtitle">Organise tasks by type using coloured tags</div>
-      </div>
-    </div>
-
-    <p>Categories are coloured labels that you attach to tasks. They help you see at a glance what type of work a task belongs to. For example, you might have categories for "Work", "Personal", "Health", and "Other". When you look at your task board, you can immediately tell what kind of task each one is from its colour.</p>
-
-    <h3>How to Manage Categories</h3>
-    <ol class="step-list">
-      <li><p><strong>Click the gear icon (&#x2699;)</strong> in the top navigation bar. A "Manage categories" box will slide open or appear as a panel.</p></li>
-      <li><p><strong>Look at the existing categories.</strong> You will see a list of existing category names, each with a coloured dot or swatch next to it.</p></li>
-      <li><p><strong>To change a category's colour:</strong> Click the coloured circle or swatch next to the category name. Each click cycles through a set of available colours. Keep clicking until you see the colour you want.</p></li>
-      <li><p><strong>To rename a category:</strong> Click directly on the category's name text. A text box will appear. Delete the old name and type the new one. Press Enter or click somewhere else to confirm.</p></li>
-      <li><p><strong>To delete a category:</strong> Click the small &#x2715; button next to the category. Note: you can only delete a category if no tasks are currently using that label. If tasks are using it, you must first reassign or delete those tasks.</p></li>
-      <li><p><strong>To add a new category:</strong> Look for the "+ Add category" button at the bottom of the panel and click it. A new blank category will appear. Type the name you want and choose a colour.</p></li>
-      <li><p><strong>Click "Done"</strong> when you have finished all your changes. The panel will close and your categories will be updated.</p></li>
-    </ol>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Keep your category list short — four to six categories is enough for most people. Too many categories makes the system confusing rather than helpful. A good starting set might be: Work, Projects, Personal, Admin, Learning.
-    </div>
-
-    <h3>Using Categories When Adding or Editing Tasks</h3>
-    <p>Whenever you add a new task or edit an existing one, you will see a "Category" dropdown. Click it to select a category from the list you have set up. The task card will then show a small coloured dot or label with the category name. This makes it easy to scan your board and quickly identify what type of work is waiting.</p>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 13 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">13</div>
-      <div>
-        <div class="section-title">Delegation — Assigning Tasks to People</div>
-        <div class="section-subtitle">Track who is responsible for Q3 tasks</div>
-      </div>
-    </div>
-
-    <p>The Delegation feature is specifically for the Q3 (Delegate) quadrant. When you put a task in Q3, it means you want someone else to handle it. The delegation feature lets you record exactly which person is responsible for each task, so you always know who is handling what.</p>
-
-    <h3>Step 1: Add People to Your Delegation List</h3>
-    <p>Before you can assign tasks to someone, you need to add their name to your list.</p>
-    <ol class="step-list">
-      <li><p><strong>Click the person/group icon</strong> in the top navigation bar. A "Manage people" panel will open.</p></li>
-      <li><p><strong>Click "+ Add person".</strong> A new row appears for you to enter a name.</p></li>
-      <li><p><strong>Type the person's name.</strong> For example: "Rajan Mehta" or "Team Lead" or "Vendor Support". Use a name that makes sense to you.</p></li>
-      <li><p><strong>Click the coloured circle</strong> next to their name to choose a colour. Each person can have their own colour, which will appear on task cards assigned to them. Keep clicking to cycle through the available colours.</p></li>
-      <li><p><strong>Click "Done"</strong> when you have added all the people you need.</p></li>
-    </ol>
-
-    <h3>Step 2: Assign a Task to Someone When Adding It</h3>
-    <ol class="step-list">
-      <li><p><strong>Click "+ Add task"</strong> inside the Q3 (Delegate) quadrant.</p></li>
-      <li><p><strong>Type the task name</strong> and any optional notes.</p></li>
-      <li><p><strong>Look for the "Delegate to" dropdown.</strong> This dropdown only appears for Q3 tasks. Click it to see your list of people.</p></li>
-      <li><p><strong>Select the person's name.</strong> Click on the name of the person who will handle this task. If you choose "Self", it means you are keeping the task yourself even though it is in Q3.</p></li>
-      <li><p><strong>Click "Add".</strong> The task card will appear in Q3 and will display the person's name with a small person icon, so you can see at a glance who is responsible.</p></li>
-    </ol>
-
-    <h3>Changing the Assigned Person Later</h3>
-    <p>You can change who a task is assigned to at any time. Click the pencil (edit) icon on the task card, then change the "Delegate to" dropdown to a different person, and click "Save changes".</p>
-
-    <div class="warn-box">
-      <strong>Note:</strong> You cannot delete a person from your list if they still have tasks assigned to them in Q3. First reassign those tasks to someone else (or to "Self"), and then you will be able to delete the person's name.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Use the "Self" option for tasks in Q3 where you have not yet found someone to delegate to, but you know you should. This is a reminder that delegation is the goal. Revisit these tasks regularly and try to find the right person.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 14 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">14</div>
-      <div>
-        <div class="section-title">Search — Finding Tasks Quickly</div>
-        <div class="section-subtitle">Locate any task instantly by typing part of its name</div>
-      </div>
-    </div>
-
-    <p>When your board fills up with many tasks across all four quadrants, finding a specific task by scrolling through each quadrant can take time. The Search feature lets you find any task instantly by typing a few letters of its name.</p>
-
-    <h3>How to Use Search</h3>
-    <ol class="step-list">
-      <li><p><strong>Look for the search box in the top navigation bar.</strong> It is a long rectangular input field with a magnifying glass icon inside it. It usually sits in the middle of the top bar.</p></li>
-      <li><p><strong>Click inside the search box.</strong> Your cursor will appear inside it and the box will become active.</p></li>
-      <li><p><strong>Start typing any word</strong> from the task name or note. For example, type "report" to find all tasks with the word "report" in them. You do not need to type the full word — even two or three letters will start filtering results.</p></li>
-      <li><p><strong>Watch the board update as you type.</strong> Tasks that match what you typed will remain clearly visible. Tasks that do NOT match will fade out or be hidden. This happens across ALL four quadrants at once — you do not need to search each quadrant separately.</p></li>
-      <li><p><strong>Click on the task you were looking for</strong> to interact with it (complete it, edit it, etc.), or simply read its details.</p></li>
-      <li><p><strong>Clear the search box to show all tasks again.</strong> Click inside the search box and delete everything you typed (or click the small &#x2715; icon inside the box if there is one). All tasks will reappear normally.</p></li>
-    </ol>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Search also looks inside task Notes, not just the task name. So if you remember you wrote "ask Suresh" in a note but do not remember the task name, searching for "Suresh" will find it. This makes search very powerful for boards with many tasks.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 15 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">15</div>
-      <div>
-        <div class="section-title">Clearing Done Tasks</div>
-        <div class="section-subtitle">Remove all completed tasks from the board in one action</div>
-      </div>
-    </div>
-
-    <p>As you complete tasks over days and weeks, your board will accumulate a growing number of completed (crossed-out) tasks. While this can feel satisfying to see, it can also make the board harder to read. The "Clear done" feature removes all completed tasks at once, giving you a clean, fresh board.</p>
-
-    <h3>How to Clear Done Tasks</h3>
-    <ol class="step-list">
-      <li><p><strong>Look for the "Clear done" button</strong> in the top navigation bar. It is usually displayed as text or a small button. It may show a count of how many completed tasks exist (e.g. "Clear done (7)").</p></li>
-      <li><p><strong>Click "Clear done" once.</strong> A confirmation box will appear asking if you are sure you want to delete all completed tasks.</p></li>
-      <li><p><strong>Read the confirmation message carefully.</strong> It will tell you how many completed tasks will be removed. Make sure you are happy to lose this data permanently.</p></li>
-      <li><p><strong>Click "Delete" to confirm.</strong> All completed tasks will be removed from the board across all four quadrants immediately.</p></li>
-      <li><p><strong>Your board is now clean</strong> and shows only the tasks still waiting to be done.</p></li>
-    </ol>
-
-    <div class="warn-box">
-      <strong>Warning:</strong> Clearing done tasks permanently deletes all completed tasks. This cannot be undone. If you want to keep a record of everything you have completed — for reporting to your manager or for your own reference — use the Excel Export feature (Section 18) to download your data BEFORE clicking "Clear done". The export file includes all completed tasks with their dates.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> A good routine is to export your data to Excel and then clear done tasks every Friday afternoon. This gives you a clean board to start Monday with, while still keeping a permanent record of everything you accomplished that week.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 16 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">16</div>
-      <div>
-        <div class="section-title">The Statistics Dashboard</div>
-        <div class="section-subtitle">Charts and numbers that show your productivity at a glance</div>
-      </div>
-    </div>
-
-    <p>The Statistics Dashboard is a separate page in the app that shows you detailed information about your tasks and your productivity. Instead of reading through a list of tasks, you see charts and summary numbers that tell the story of your work at a glance.</p>
-
-    <h3>How to Open the Dashboard</h3>
-    <p>Click the <strong>"Stats"</strong> link in the top navigation bar. The Statistics page will open. Click the Matrix logo to go back to your task board at any time.</p>
-
-    <h3>What You See on the Dashboard</h3>
-
-    <h4>A. KPI Cards (Big Number Boxes)</h4>
-    <p>KPI stands for "Key Performance Indicator". These are large coloured boxes, each showing one important number. You can display up to four KPI cards at a time. Each card gives you a quick snapshot of something important.</p>
-
-    <h4>B. Charts</h4>
-    <p>Charts are visual diagrams — lines, bars, and circles — that show patterns in your task data. You can display up to four charts at a time.</p>
-
-    <h4>C. Customize Button</h4>
-    <p>Click the "Customize" button to choose WHICH four KPI cards and WHICH four charts you want to see. You can swap them in and out at any time depending on what you want to focus on.</p>
-
-    <h3>All Available KPI Metrics</h3>
-    <ul class="metric-list">
-      <li><span class="metric-num">1</span><div class="metric-body"><strong>Open Tasks</strong> — <span>How many tasks on your board are not yet completed. Gives you an immediate sense of how much work is waiting.</span></div></li>
-      <li><span class="metric-num">2</span><div class="metric-body"><strong>Done Today</strong> — <span>The number of tasks you have completed today. A great daily motivation check.</span></div></li>
-      <li><span class="metric-num">3</span><div class="metric-body"><strong>Completion Rate</strong> — <span>The percentage of ALL tasks that have been completed. For example, 60% means 6 out of every 10 tasks you ever added have been done.</span></div></li>
-      <li><span class="metric-num">4</span><div class="metric-body"><strong>Avg Completion</strong> — <span>The average number of days between when a task is added and when it is completed. A shorter time is better — it means you are acting quickly.</span></div></li>
-      <li><span class="metric-num">5</span><div class="metric-body"><strong>Total Tasks</strong> — <span>The total number of tasks ever added to your board, including completed and deleted ones (if tracked). Useful for understanding overall workload.</span></div></li>
-      <li><span class="metric-num">6</span><div class="metric-body"><strong>Q1 Urgent Open</strong> — <span>How many tasks in the Q1 (Do First) quadrant are still not completed. Keep this number low — a high number means urgent work is piling up.</span></div></li>
-      <li><span class="metric-num">7</span><div class="metric-body"><strong>Done This Week</strong> — <span>The number of tasks completed in the last 7 days. Gives you a sense of your weekly productivity.</span></div></li>
-      <li><span class="metric-num">8</span><div class="metric-body"><strong>Oldest Open Task</strong> — <span>Shows how long your oldest unfinished task has been sitting on your board. If this number is very large (like 30+ days), that task may be stuck and needs attention.</span></div></li>
-      <li><span class="metric-num">9</span><div class="metric-body"><strong>Quadrant Moves</strong> — <span>The total number of times any task has been moved from one quadrant to another. Shows how actively you are re-evaluating your tasks.</span></div></li>
-      <li><span class="metric-num">10</span><div class="metric-body"><strong>Escalated to Q1</strong> — <span>How many times a task was moved into Q1 (the urgent quadrant). A high number may indicate that planning could be improved — more Q2 work would prevent Q1 escalations.</span></div></li>
-    </ul>
-
-    <h3>All Available Charts</h3>
-    <ul class="metric-list">
-      <li><span class="metric-num">1</span><div class="metric-body"><strong>Tasks over time</strong> — <span>A line chart comparing tasks created versus tasks completed over the past 30 days. If the "created" line is always higher than the "completed" line, your backlog is growing.</span></div></li>
-      <li><span class="metric-num">2</span><div class="metric-body"><strong>Open by quadrant</strong> — <span>A donut (ring) chart showing how your open (unfinished) work is distributed across the four quadrants. A healthy board has most open work in Q2.</span></div></li>
-      <li><span class="metric-num">3</span><div class="metric-body"><strong>Tasks by category</strong> — <span>A horizontal bar chart showing how many tasks exist in each category (e.g. Work, Personal, Admin). Helps you see where your time is going.</span></div></li>
-      <li><span class="metric-num">4</span><div class="metric-body"><strong>Avg completion time</strong> — <span>A bar chart showing the average number of days it takes to complete tasks in each quadrant. Q1 tasks should have the shortest completion time.</span></div></li>
-      <li><span class="metric-num">5</span><div class="metric-body"><strong>Weekly completions</strong> — <span>A bar chart showing how many tasks you completed each day this week (Monday to Sunday). Useful for spotting your most productive days.</span></div></li>
-      <li><span class="metric-num">6</span><div class="metric-body"><strong>Done vs Open</strong> — <span>A grouped bar chart comparing finished and unfinished tasks in each quadrant side by side. Gives a complete picture of progress per quadrant.</span></div></li>
-      <li><span class="metric-num">7</span><div class="metric-body"><strong>Quadrant flow</strong> — <span>A chart showing which quadrant moves happen most often. For example, how many tasks moved from Q2 to Q1, or from Q1 to Q3. Helps you understand how work evolves.</span></div></li>
-    </ul>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> A good set of KPI cards for most users is: Open Tasks, Q1 Urgent Open, Done This Week, and Completion Rate. These four numbers together give you a complete daily picture without overwhelming you.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 17 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">17</div>
-      <div>
-        <div class="section-title">Email Reminders</div>
-        <div class="section-subtitle">Get an automatic email listing your urgent tasks</div>
-      </div>
-    </div>
-
-    <p>The Email Reminders feature automatically sends you an email listing all your open Q1 (Do First) tasks. This is useful when you are away from your desk and want a reminder of what is most urgent, or when you want to share your urgent tasks with a manager.</p>
-
-    <h3>How to Set Up Email Reminders</h3>
-    <ol class="step-list">
-      <li><p><strong>Click the bell icon (&#x1F514;)</strong> in the top navigation bar. The email reminders settings panel will open.</p></li>
-      <li><p><strong>Find the "Email reminders" toggle switch.</strong> This is a switch that you can turn ON or OFF. If it is grey, reminders are off. Click it to turn it ON — it will change to a coloured state (usually green or navy).</p></li>
-      <li><p><strong>Choose how often you want reminders.</strong> A dropdown or set of options will appear showing time intervals:
-        <ul style="margin-top:8px;">
-          <li>Every 4 hours</li>
-          <li>Every 8 hours</li>
-          <li>Every 24 hours (once a day)</li>
-          <li>Every 48 hours (every two days)</li>
-          <li>Every 3 days</li>
-          <li>Custom — type your own number of hours</li>
+        <h3 class="mt16">Email Reminders</h3>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>Click the 🔔 bell icon in the top bar.</span></li>
+          <li><span class="sn">2</span><span>Toggle <strong>Daily Digest</strong> on and set a time.</span></li>
+          <li><span class="sn">3</span><span>You'll receive a daily email listing all your pending tasks.</span></li>
         </ul>
-        Choose the option that works best for you. For most people, every 24 hours (once a day) is a good starting point.
-      </p></li>
-      <li><p><strong>Click "Save".</strong> Your reminder settings are now saved.</p></li>
-      <li><p><strong>Check the "Last sent" information.</strong> The panel shows you when the last reminder email was sent to your address. This helps you confirm the feature is working.</p></li>
-    </ol>
-
-    <h3>How the Reminders Work</h3>
-    <p>Each time you open the Matrix app (in your browser), the app checks whether enough time has passed since your last reminder email was sent. If enough time has passed — based on the interval you chose — it automatically sends you an email to your <code>@maruti.co.in</code> address. The email lists all your open Q1 tasks so you can see at a glance what is most urgent.</p>
-
-    <div class="note-box">
-      <strong>Note:</strong> The email reminder feature requires a Power Automate integration that must be set up by your company's IT team. If you turn on reminders but do not receive any emails after a few days, contact your IT helpdesk to confirm the integration is active.
-    </div>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Set a reminder for every 24 hours if you check email daily. Set it for every 8 hours if you have a very busy, fast-moving role where urgent tasks change throughout the day.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 18 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">18</div>
+      </div>
       <div>
-        <div class="section-title">Downloading Your Data (Excel Export)</div>
-        <div class="section-subtitle">Save a copy of all your tasks as an Excel spreadsheet</div>
+        <h3>Settings Panel (⚙)</h3>
+        <table class="tbl">
+          <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Categories</strong></td><td>Create, rename, or delete task labels</td></tr>
+            <tr><td><strong>Manage People</strong></td><td>Add or remove people for delegation</td></tr>
+            <tr><td><strong>Clear Done</strong></td><td>Remove completed tasks from one or all quadrants</td></tr>
+            <tr><td><strong>Dark Mode</strong></td><td>Switch to a dark colour theme</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="mt16">Using on Mobile</h3>
+        <p style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Matrix works on smartphones and tablets. The layout adjusts automatically.</p>
+        <ul class="steps">
+          <li><span class="sn">1</span><span>On mobile, quadrants stack vertically (one below the other).</span></li>
+          <li><span class="sn">2</span><span>To move a task on mobile, open it and change the Quadrant dropdown.</span></li>
+          <li><span class="sn">3</span><span>Drag &amp; drop also works on touch screens — press and hold, then drag.</span></li>
+        </ul>
+
+        <div class="warn mt12">
+          <span class="warn-icon">📱</span>
+          <span>For best experience, use Chrome on Android or Safari on iPhone. Add to home screen for an app-like feel.</span>
+        </div>
       </div>
     </div>
-
-    <p>The Export feature downloads a complete copy of all your task data to your computer as an Excel file. This is useful for creating reports, sharing your progress with a manager, or keeping a backup before you clear completed tasks.</p>
-
-    <h3>How to Export Your Data</h3>
-    <ol class="step-list">
-      <li><p><strong>Go to the Statistics Dashboard.</strong> Click "Stats" in the top navigation bar.</p></li>
-      <li><p><strong>Look for the "Export" button.</strong> It is a navy blue button, usually located near the top-right area of the Stats page, next to the "Customize" button.</p></li>
-      <li><p><strong>Click "Export".</strong> The app will prepare your data immediately. Within a few seconds, a file will automatically download to your computer. You do not need to fill in any forms or choose any options.</p></li>
-      <li><p><strong>Find the downloaded file.</strong> The file is named <code>matrix-tasks-YYYY-MM-DD.xlsx</code> — for example, <code>matrix-tasks-2026-06-10.xlsx</code>. Look in your computer's Downloads folder. You can usually find this by opening File Explorer (on Windows) and clicking "Downloads" on the left side.</p></li>
-      <li><p><strong>Open the file in Microsoft Excel</strong> by double-clicking it. The file will open and you will see multiple tabs (sheets) at the bottom.</p></li>
-    </ol>
-
-    <h3>What Is Inside the Excel File</h3>
-    <p>The Excel file contains three separate sheets (tabs), each with different information:</p>
-
-    <table class="sheet-table">
-      <thead>
-        <tr>
-          <th>Sheet Name</th>
-          <th>What It Contains</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>1. Tasks</td>
-          <td>Every single task — past and present. Columns include: task name, note, which quadrant it was in, its category, whether it is done or open, the date it was added, the date it was completed (if done), how long it took to complete, and how long it has been open (if not done yet).</td>
-        </tr>
-        <tr>
-          <td>2. Summary</td>
-          <td>A summary view of all your KPI numbers in one place. Also includes a breakdown of tasks by quadrant and by category — useful for sharing with your manager in a report.</td>
-        </tr>
-        <tr>
-          <td>3. Quadrant Moves</td>
-          <td>A complete log of every time a task was moved from one quadrant to another. Each row shows: which task was moved, which quadrant it moved FROM, which quadrant it moved TO, and the exact date and time of the move.</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> Download your data to Excel every week as a backup. Store the file in a shared drive or email it to yourself. This way, even if you clear your completed tasks from the board, you will always have a permanent record of your work. Your manager or HR department may appreciate weekly or monthly export summaries as evidence of productivity.
-    </div>
-
-    <div class="warn-box">
-      <strong>Troubleshooting:</strong> If the Export button does not respond when you click it, make sure you are on the Stats page (not the main task board) and that you have an active internet connection. If it still does not work, try refreshing the page with the F5 key and clicking Export again.
-    </div>
   </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">9</div>
+</div>
 
-  <!-- ═══════════════════════════════════════ SECTION 19 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">19</div>
+<!-- ══════════════════════════════════════════════════════════
+     PAGE 10 — BEST PRACTICES + TROUBLESHOOTING
+══════════════════════════════════════════════════════════ -->
+<div class="pg">
+  <div class="inner">
+    <div class="pg-title">Best Practices &amp; <span>Troubleshooting</span></div>
+
+    <div class="cols" style="gap:24px;margin-bottom:18px;">
       <div>
-        <div class="section-title">Using Matrix on Your Mobile Phone</div>
-        <div class="section-subtitle">Access your task board anywhere using your smartphone</div>
+        <h3>Daily Routine (5 minutes)</h3>
+        <table class="tbl">
+          <thead><tr><th>When</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Morning</strong></td><td>Check Q1 — handle anything urgent first</td></tr>
+            <tr><td><strong>During day</strong></td><td>Add tasks as they come; put them in the right quadrant</td></tr>
+            <tr><td><strong>End of day</strong></td><td>Tick completed tasks; move anything that changed priority</td></tr>
+            <tr><td><strong>Weekly</strong></td><td>Review Q2, assign due dates, check Stats dashboard, export Excel</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="mt16">Golden Rules</h3>
+        <ul class="steps">
+          <li><span class="sn">✓</span><span><strong>Never leave Q3 empty of owners.</strong> Every delegated task needs a person.</span></li>
+          <li><span class="sn">✓</span><span><strong>Keep Q1 small.</strong> If it keeps growing, you need more Q2 planning.</span></li>
+          <li><span class="sn">✓</span><span><strong>Zero overdue = success.</strong> Act on due dates before they pass.</span></li>
+          <li><span class="sn">✓</span><span><strong>One task, one action.</strong> Write tasks as single clear actions.</span></li>
+        </ul>
       </div>
-    </div>
-
-    <p>The Matrix app works on mobile phones just as well as on a computer. You use the same website address — there is no separate app to download from the app store. Everything is already included in the website.</p>
-
-    <h3>How to Open Matrix on Your Phone</h3>
-    <ol class="step-list">
-      <li><p><strong>Open your phone's web browser.</strong> Look for Google Chrome or Safari on your home screen and tap on it to open it.</p></li>
-      <li><p><strong>Tap the address bar at the top</strong> of the browser and type the Matrix website address. Then tap "Go" or press the search button on your phone keyboard.</p></li>
-      <li><p><strong>Sign in with your @maruti.co.in email</strong> and password, just as you would on a computer. (See Section 3 for full sign-in instructions.)</p></li>
-      <li><p><strong>The mobile version loads.</strong> The screen layout is different from the computer version because phone screens are much narrower. Instead of showing all four quadrants at once, the phone shows one quadrant at a time.</p></li>
-    </ol>
-
-    <h3>Navigating Between Quadrants on Mobile</h3>
-    <p>At the very bottom of the screen, you will see four tab buttons. These buttons are labelled:</p>
-    <ul>
-      <li><span class="ui-label red">Do First</span> — for Q1 tasks</li>
-      <li><span class="ui-label">Schedule</span> — for Q2 tasks</li>
-      <li><span class="ui-label green">Delegate</span> — for Q3 tasks</li>
-      <li><span class="ui-label grey">Eliminate</span> — for Q4 tasks</li>
-    </ul>
-    <p>Tap any of these buttons to switch to that quadrant. The screen will update instantly to show the tasks in the selected quadrant.</p>
-
-    <h3>Adding and Managing Tasks on Mobile</h3>
-    <p>All the same features are available on mobile — adding, completing, editing, deleting, and searching tasks. The buttons may be in slightly different positions on the screen, but the steps are the same. Look for the "+ Add task" button within the current quadrant view to add a new task.</p>
-
-    <h3>Dragging Tasks on Mobile</h3>
-    <ol class="step-list">
-      <li><p><strong>Press and hold your finger on a task card</strong> for about one second. The card will appear to lift, signalling it is ready to be moved.</p></li>
-      <li><p><strong>While still pressing, drag your finger</strong> slowly across the screen. The app will show you which quadrant you are hovering over as you move.</p></li>
-      <li><p><strong>Lift your finger</strong> when you are over the destination quadrant. The task will be placed there.</p></li>
-    </ol>
-
-    <h3>Everything Stays in Sync</h3>
-    <p>Because all tasks are stored in the cloud, any change you make on your phone will immediately appear when you open the app on your computer — and vice versa. There is no need to "sync" or "update" anything. It all happens automatically.</p>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> After visiting a production line or a meeting, take 2 minutes to open Matrix on your phone and add any new tasks that came up. Capture them while they are fresh in your memory. You can categorise and prioritise them properly when you get back to your desk.
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════ SECTION 20 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">20</div>
       <div>
-        <div class="section-title">Daily Best Practices</div>
-        <div class="section-subtitle">Simple habits that help you get the most out of Matrix every day</div>
+        <h3>Troubleshooting</h3>
+        <table class="tbl">
+          <thead><tr><th style="width:50%">Problem</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>Can't log in — "not authorised"</td><td>Use your <strong>@maruti.co.in</strong> email only</td></tr>
+            <tr><td>Forgot password</td><td>Click <strong>Forgot Password</strong> on the login screen</td></tr>
+            <tr><td>Tasks not saving</td><td>Check your internet connection; tasks sync to cloud</td></tr>
+            <tr><td>Drag &amp; drop not working</td><td>Try the Edit modal method; refresh the page</td></tr>
+            <tr><td>Stats page shows no data</td><td>Add and complete at least 1 task first</td></tr>
+            <tr><td>Email reminders not arriving</td><td>Check spam folder; verify toggle is ON in 🔔</td></tr>
+            <tr><td>App looks broken on screen</td><td>Use Chrome or Edge; clear browser cache (Ctrl+Shift+Del)</td></tr>
+            <tr><td>People chart is empty</td><td>Assign at least one task to a person first</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <p>The Matrix app is a tool — like a hammer or a calendar. Having the tool is not enough on its own; it is how you use it that determines whether it helps you. These best practices are simple daily and weekly habits that will make a real difference to how organised and productive you feel.</p>
-
-    <div class="practice-card accent-red">
-      <h4>Morning Routine — 5 Minutes Every Day</h4>
-      <ul>
-        <li><strong>Open Matrix first</strong> — Before checking email or messaging apps, open the Matrix board. This sets your priorities for the day.</li>
-        <li><strong>Review Q1 (Do First)</strong> — Read through every task in the red quadrant. Identify the one most urgent task and decide you will complete it before anything else interrupts you.</li>
-        <li><strong>Complete the most urgent task first</strong> — This is sometimes called "eating the frog". It feels uncomfortable to start with the hardest thing, but you will feel much better once it is done.</li>
-        <li><strong>Check if any Q2 tasks need to move to Q1</strong> — Ask yourself: "Has any task that was not urgent yesterday become urgent today?" If yes, edit it and move it to Q1.</li>
-        <li><strong>Add any new tasks</strong> that came up since yesterday, placing each one in the correct quadrant.</li>
-      </ul>
+    <div class="tip">
+      <span class="tip-icon">🎯</span>
+      <span><strong>The goal isn't a full board — it's a focused one.</strong> The best Matrix users keep Q1 near zero, Q2 healthy, Q3 fully delegated, and Q4 ruthlessly trimmed.</span>
     </div>
 
-    <div class="practice-card">
-      <h4>Weekly Review — Every Monday, 10 Minutes</h4>
-      <ul>
-        <li><strong>Review ALL four quadrants.</strong> Read through every task. Ask: "Is this task still in the right quadrant? Has anything changed this week?"</li>
-        <li><strong>Move tasks that have become more or less urgent.</strong> Use drag and drop or the Edit box to relocate tasks to the correct quadrant.</li>
-        <li><strong>Clear done tasks</strong> — After exporting your data to Excel (see Section 18), use "Clear done" to remove completed tasks. Start the week with a clean board.</li>
-        <li><strong>Check the Dashboard.</strong> Click "Stats" and look at your completion rate for last week. Did you complete more or fewer tasks than the week before?</li>
-        <li><strong>Plan at least one Q2 task</strong> for this week. Block out time in your calendar to actually do it.</li>
-      </ul>
-    </div>
-
-    <div class="practice-card accent-red">
-      <h4>Keep Q1 Under Control</h4>
-      <ul>
-        <li>Never let Q1 pile up with more than 5–6 tasks at once. If it does, you are probably not delegating or not saying no to unimportant urgent requests.</li>
-        <li>Ask for each Q1 task: "Does this REALLY have to be today, or am I just being pressured to say yes?" Some "urgent" demands are actually Q3 or even Q2.</li>
-        <li>When you complete a Q1 task, take a moment to ask: "How could better planning have prevented this from becoming urgent?" Use the answer to plan better Q2 work.</li>
-      </ul>
-    </div>
-
-    <div class="practice-card accent-green">
-      <h4>Protect Q2 Time</h4>
-      <ul>
-        <li>Q2 (Schedule) is where your career growth and your team's improvement happens. Yet it never shouts at you the way Q1 does. You have to deliberately protect time for it.</li>
-        <li>Block 30 to 60 minutes in your daily calendar labelled "Q2 Focus Time". During this block, close email, silence notifications, and work only on your most important scheduled task.</li>
-        <li>If you find Q2 tasks keep getting pushed to the next day and then the next, set a firm deadline for them in the task note and treat that date as a commitment.</li>
-      </ul>
-    </div>
-
-    <div class="practice-card accent-amber">
-      <h4>Use Q3 and Q4 Wisely</h4>
-      <ul>
-        <li>Every time you are about to start a task, ask: "Should I be the one doing this?" If someone else could handle it, move it to Q3 and delegate it.</li>
-        <li>If you find yourself doing a Q3 task yourself because it is "faster that way", consider whether that is true — or whether training someone else now would save more time in the long run.</li>
-        <li>For Q4 tasks: if a task has been sitting there untouched for more than two weeks with no consequences, delete it. It is probably not worth doing at all.</li>
-        <li>Question recurring meetings that produce no decisions — those belong in Q4. Suggest skipping or shortening them.</li>
-      </ul>
-    </div>
-
-    <div class="tip-box">
-      <strong>Final Tip:</strong> The Eisenhower Matrix system works best when it becomes a habit — something you do automatically rather than something you have to force yourself to do. Give it three weeks of daily use. After that, most people report feeling significantly less stressed and more in control of their workday.
+    <div style="margin-top:24px;padding:16px 20px;background:var(--navy);border-radius:10px;text-align:center;">
+      <div style="color:#fff;font-weight:700;font-size:14px;">Need Help?</div>
+      <div style="color:rgba(255,255,255,.65);font-size:12.5px;margin-top:4px;">Reach out to your IT Helpdesk or the Matrix app administrator.</div>
+      <div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:8px;">Matrix · Maruti Suzuki Internal Productivity Tool · Confidential</div>
     </div>
   </div>
+  <div class="watermark">MATRIX — MARUTI SUZUKI</div>
+  <div class="pg-num">10</div>
+</div>
 
-  <!-- ═══════════════════════════════════════ SECTION 21 ═══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">21</div>
-      <div>
-        <div class="section-title">Troubleshooting</div>
-        <div class="section-subtitle">Solutions to common problems you might encounter</div>
-      </div>
-    </div>
-
-    <p>If something does not work as expected, do not worry. Most issues have simple explanations and easy fixes. Check the table below for your problem and its solution.</p>
-
-    <table class="trouble-table">
-      <tr>
-        <td>"I cannot sign in / the app says my email is not allowed"</td>
-        <td>Make sure your email address ends in <code>@maruti.co.in</code>. Personal email addresses (Gmail, Yahoo, Hotmail, etc.) are not accepted. If your Maruti email does not work either, contact your IT helpdesk — your account may need to be set up or unlocked.</td>
-      </tr>
-      <tr>
-        <td>"I forgot my password"</td>
-        <td>Look for a "Forgot password?" link on the login screen and follow the instructions. If it is not there, contact your IT helpdesk directly. They can reset your password. Do not ask a colleague to share their password with you.</td>
-      </tr>
-      <tr>
-        <td>"My tasks have disappeared"</td>
-        <td>Check that you are signed in with the correct email address. Tasks are linked to your specific account — if you signed in with a different email than usual, your board will appear empty. Sign out, then sign back in with your normal email address.</td>
-      </tr>
-      <tr>
-        <td>"The app is very slow or not loading"</td>
-        <td>Check your internet connection. The Matrix app requires a live internet connection at all times to save and load tasks. If you are on Wi-Fi, try moving closer to the router. If you are on a wired network, check the cable. Try refreshing the page (press F5 on Windows or Cmd+R on Mac).</td>
-      </tr>
-      <tr>
-        <td>"The Export button does not download anything"</td>
-        <td>Make sure you are on the Stats page, not the main task board. Also check that your internet connection is active. If the problem continues, try pressing F5 to refresh the page, then click Export again. Some browsers also block automatic downloads — look for a small notification at the top of your browser asking for permission to download, and click "Allow".</td>
-      </tr>
-      <tr>
-        <td>"I am not receiving reminder emails"</td>
-        <td>First check that the email reminders toggle is turned ON (see Section 17). Then check your Junk / Spam email folder — automated emails sometimes land there. If the emails are not in spam either, your IT team may need to configure the Power Automate email integration for your account.</td>
-      </tr>
-      <tr>
-        <td>"I accidentally deleted a task"</td>
-        <td>Unfortunately, deletion cannot be undone. Once a task is deleted, it is gone permanently. Going forward, use the Excel Export feature (Section 18) regularly as a backup. This way, even if you accidentally delete something, you have a copy in the spreadsheet.</td>
-      </tr>
-      <tr>
-        <td>"Drag and drop is not working"</td>
-        <td>On a computer, make sure you click and HOLD the task card before moving your mouse — releasing too quickly will not drag it. On mobile, press and hold for a full second before dragging. If it still does not work, use the Edit box (pencil icon) and change the "Move to quadrant" dropdown instead.</td>
-      </tr>
-      <tr>
-        <td>"The app does not look right on my phone"</td>
-        <td>Make sure you are using an up-to-date browser — either the latest version of Chrome or Safari. Old browser versions may not display the app correctly. On Android, open Chrome, tap the three dots in the top right, and check for "Update Chrome". On iPhone, Safari updates automatically with iOS updates.</td>
-      </tr>
-      <tr>
-        <td>"The category dropdown is empty when adding a task"</td>
-        <td>You need to create at least one category first. Click the gear icon (&#x2699;) in the top navigation bar, then click "+ Add category" to create one (see Section 12). Once a category exists, it will appear in the dropdown when adding tasks.</td>
-      </tr>
-    </table>
-
-    <h3>Still Need Help?</h3>
-    <p>If you have tried the steps above and the problem persists, contact your IT helpdesk or the person at Maruti Suzuki who set up the Matrix app for your team. When you contact them, try to describe:</p>
-    <ul>
-      <li>What you were trying to do</li>
-      <li>What happened instead (or what error message appeared)</li>
-      <li>Which device and browser you are using (e.g. "Windows computer, Google Chrome")</li>
-    </ul>
-
-    <div class="tip-box">
-      <strong>Tip:</strong> If something goes wrong with the app, take a screenshot before refreshing the page. A screenshot of an error message is very helpful for the IT team when they investigate the problem. On Windows, press the Windows key + Shift + S to take a screenshot of a selected area.
-    </div>
-
-    <div style="margin-top:48px; padding-top:32px; border-top:2px solid var(--border); text-align:center; color:var(--muted); font-size:13px;">
-      <div style="margin-bottom:12px;">
-        <svg width="32" height="32" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block; vertical-align:middle; opacity:0.4;">
-          <rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="#00205B"/>
-          <rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="#00205B" opacity="0.55"/>
-          <rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="#00205B" opacity="0.55"/>
-          <rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="#00205B" opacity="0.25"/>
-        </svg>
-      </div>
-      <strong style="color:var(--navy); font-size:15px;">Matrix</strong><br/>
-      Eisenhower Matrix Task Manager for Maruti Suzuki<br/>
-      User Handbook &nbsp;&middot;&nbsp; Version 1.0 &nbsp;&middot;&nbsp; June 2026<br/><br/>
-      <em>For IT support, contact your Maruti Suzuki IT helpdesk.</em>
-    </div>
-  </div>
-
-</div><!-- end page-wrapper -->
 </body>
 </html>

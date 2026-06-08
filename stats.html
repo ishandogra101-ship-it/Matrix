@@ -160,6 +160,18 @@ const ALL_KPIS = [
     id:'escalated', label:'Escalated to Q1', class:'kpi-esc', iconClass:'kpi-icon-esc', color:'#C8102E',
     icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#C8102E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16V5"/><path d="M5 9l5-5 5 5"/><path d="M5 17h10"/></svg>`,
   },
+  {
+    id:'delegated', label:'Tasks Delegated', class:'kpi-delegated', iconClass:'kpi-icon-delegated', color:'#00875A',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#00875A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.8"/><path d="M2.5 16c0-3 2.5-4.5 5.5-4.5"/><path d="M13 12l4 4-4 4"/><path d="M17 16h-5"/></svg>`,
+  },
+  {
+    id:'unassigned_q3', label:'Undelegated Q3', class:'kpi-undel', iconClass:'kpi-icon-undel', color:'#B45309',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="2.8"/><path d="M3 16c0-3 2.7-4.5 6-4.5s6 1.5 6 4.5"/><path d="M15.5 6.5v4M15.5 12.5v.5"/></svg>`,
+  },
+  {
+    id:'top_person', label:'Top Assignee', class:'kpi-topperson', iconClass:'kpi-icon-topperson', color:'#0355A0',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0355A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6" r="3"/><path d="M4 17c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M10 2v1M13.1 3.4l-.7.7M15 6.5h-1M13.1 9.6l-.7-.7"/></svg>`,
+  },
 ];
 
 const ALL_CHARTS = [
@@ -170,6 +182,7 @@ const ALL_CHARTS = [
   { id:'weekly',   label:'Weekly completions',   sub:'Last 7 days · Daily done count' },
   { id:'ratio',    label:'Done vs Open',         sub:'Completion breakdown by quadrant' },
   { id:'flow',     label:'Quadrant flow',         sub:'How tasks move between quadrants' },
+  { id:'people',   label:'Tasks by person',       sub:'Open tasks assigned per delegatee' },
 ];
 
 const Q_COLORS = { q1:'#C8102E', q2:'#00205B', q3:'#00875A', q4:'#9BAABB' };
@@ -191,7 +204,7 @@ function sanitize(arr, valid, max) {
 let selectedKPIs   = sanitize(JSON.parse(localStorage.getItem(LS_KPIS)),   ALL_KPIS.map(k=>k.id),   4);
 let selectedCharts = sanitize(JSON.parse(localStorage.getItem(LS_CHARTS)), ALL_CHARTS.map(c=>c.id), 4);
 
-let kpiData = {}, allTasks = [], allMovements = [], allCategories = [...DEFAULT_CATEGORIES];
+let kpiData = {}, allTasks = [], allMovements = [], allPeople = [], allCategories = [...DEFAULT_CATEGORIES];
 let charts  = {};
 let tempKPIs, tempCharts;
 
@@ -226,6 +239,11 @@ async function loadAndRender(user) {
   try {
     const movSnap = await getDocs(collection(db, 'users', user.uid, 'movements'));
     allMovements = movSnap.docs.map(d => d.data());
+  } catch {}
+
+  try {
+    const pSnap = await getDoc(doc(db, 'users', user.uid, 'people', 'list'));
+    if (pSnap.exists() && Array.isArray(pSnap.data().items)) allPeople = pSnap.data().items;
   } catch {}
 
   const dateEl = document.getElementById('dash-date');
@@ -279,17 +297,38 @@ function computeKPIs(tasks) {
     return `Most: ${f.toUpperCase()}→${t.toUpperCase()}`;
   })();
 
+  /* People KPIs */
+  const q3open     = tasks.filter(t => t.q === 'q3' && !t.done);
+  const delegated  = q3open.filter(t => t.assignee && t.assignee !== 'self').length;
+  const undelQ3    = q3open.filter(t => !t.assignee || t.assignee === '').length;
+
+  /* Top assignee by open task count */
+  const personCounts = {};
+  tasks.filter(t => !t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    personCounts[t.assignee] = (personCounts[t.assignee] || 0) + 1;
+  });
+  let topPersonStr = '—', topPersonFoot = 'No delegated tasks yet';
+  const topEntry = Object.entries(personCounts).sort((a,b) => b[1]-a[1])[0];
+  if (topEntry) {
+    const p = allPeople.find(p => p.id === topEntry[0]);
+    topPersonStr = p ? p.name : 'Unknown';
+    topPersonFoot = `${topEntry[1]} open task${topEntry[1]>1?'s':''}`;
+  }
+
   kpiData = {
-    open:      { value: open,        foot: `${total} total tasks` },
-    today:     { value: doneToday,   foot: 'Completed today' },
-    rate:      { value: rate+'%',    foot: `${doneAll.length} of ${total} done` },
-    avg:       { value: avgStr,      foot: avgSub },
-    total:     { value: total,       foot: `${open} open · ${doneAll.length} done` },
-    q1open:    { value: q1open,      foot: 'Urgent & Important' },
-    week:      { value: doneWeek,    foot: 'Completed last 7 days' },
-    oldest:    { value: oldestStr,   foot: oldestSub },
-    moves:     { value: totalMoves,  foot: topMove },
-    escalated: { value: escalated,   foot: 'Times moved into Q1' },
+    open:        { value: open,          foot: `${total} total tasks` },
+    today:       { value: doneToday,     foot: 'Completed today' },
+    rate:        { value: rate+'%',      foot: `${doneAll.length} of ${total} done` },
+    avg:         { value: avgStr,        foot: avgSub },
+    total:       { value: total,         foot: `${open} open · ${doneAll.length} done` },
+    q1open:      { value: q1open,        foot: 'Urgent & Important' },
+    week:        { value: doneWeek,      foot: 'Completed last 7 days' },
+    oldest:      { value: oldestStr,     foot: oldestSub },
+    moves:       { value: totalMoves,    foot: topMove },
+    escalated:   { value: escalated,     foot: 'Times moved into Q1' },
+    delegated:   { value: delegated,     foot: `${q3open.length} open Q3 tasks total` },
+    unassigned_q3:{ value: undelQ3,     foot: 'Q3 tasks without an owner' },
+    top_person:  { value: topPersonStr,  foot: topPersonFoot },
   };
 }
 
@@ -347,6 +386,7 @@ function renderCharts() {
       case 'weekly':   renderWeekly();   break;
       case 'ratio':    renderRatio();    break;
       case 'flow':     renderFlow();     break;
+      case 'people':   renderPeople();   break;
     }
   });
 }
@@ -516,6 +556,52 @@ function renderFlow() {
       scales: {
         x: { beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
         y: { ticks:{font:{family:'Inter',size:10}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderPeople() {
+  const canvas = document.getElementById('chart-people'); if (!canvas) return;
+  /* Count open tasks per named assignee (exclude 'self' and unassigned) */
+  const counts = {};
+  allTasks.filter(t => !t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    counts[t.assignee] = (counts[t.assignee] || 0) + 1;
+  });
+  /* Also count done tasks per person for a stacked view */
+  const done = {};
+  allTasks.filter(t => t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    done[t.assignee] = (done[t.assignee] || 0) + 1;
+  });
+
+  const ids = [...new Set([...Object.keys(counts), ...Object.keys(done)])];
+  if (!ids.length) {
+    canvas.parentElement.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink4);font-size:13px;font-family:inherit;text-align:center;">
+         No delegated tasks yet.<br>Assign Q3 tasks to people to see data here.
+       </div>`;
+    return;
+  }
+  const getName = id => allPeople.find(p => p.id === id)?.name || 'Unknown';
+  const getColor = id => allPeople.find(p => p.id === id)?.color || '#9BAABB';
+  const labels   = ids.map(getName);
+  const openData = ids.map(id => counts[id] || 0);
+  const doneData = ids.map(id => done[id]   || 0);
+  const colors   = ids.map(getColor);
+
+  charts.people = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Open', data:openData,  backgroundColor:colors.map(c=>c+'cc'), borderColor:colors, borderWidth:1.5, borderRadius:4, borderSkipped:false },
+        { label:'Done', data:doneData, backgroundColor:colors.map(c=>c+'44'), borderColor:colors.map(c=>c+'88'), borderWidth:1.5, borderRadius:4, borderSkipped:false },
+      ],
+    },
+    options: baseOpts({
+      scales:{
+        y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}, stacked:false },
+        x:{ ticks:{font:{family:'Inter',size:11}}, grid:{display:false} },
       },
     }),
   });
