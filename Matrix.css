@@ -828,10 +828,10 @@ body::before{
   .nav-brand{padding-right:8px;border-right:none;}
   .nav-link{padding:6px 8px;}
   .nav-link span{display:none;}
-  .stats-text{display:none;}                        /* hide "N open · M done" count */
+  .stats-text{font-size:10px;flex-shrink:0;}                        /* compact but visible */
   #people-btn{display:none;}                        /* hide people btn — fits in settings */
   .nav-user{display:none;}
-  .search-wrap{flex:1;min-width:0;max-width:140px;} /* cap search so icons aren't pushed off */
+  .search-wrap{flex:1;min-width:0;max-width:100px;} /* narrower search to make room */
   .clear-btn{display:none;}
   .cats-btn{padding:6px 8px;}
   .customize-btn span,.export-btn span{display:none;}
