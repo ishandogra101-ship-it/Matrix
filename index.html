@@ -443,11 +443,8 @@ async function initApp(user) {
   unsubTasks = onSnapshot(tasksRef, snap => {
     tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     render();
-    if (firstSnap) { firstSnap = false; checkReminder(); }
+    if (firstSnap) { firstSnap = false; syncNotifDoc(); }
   });
-
-  // Keep checking on the reminder frequency while the app is open
-  setInterval(checkReminder, 60_000); // check every minute; checkReminder skips if freq not elapsed
 
   checkMigration();
 }
@@ -652,10 +649,10 @@ function openReminderModal() {
     else { reminderCustomVal.value = Math.round(ms/86_400_000); reminderCustomUnit.value = 'd'; }
     reminderCustomRow.style.display = '';
   }
-  const last = settings.lastReminderSentAt;
-  document.getElementById('reminder-last').textContent = last
-    ? `Last sent: ${new Date(last).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} at ${new Date(last).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`
-    : 'Not sent yet';
+  const next = cachedNextSendAt;
+  document.getElementById('reminder-last').textContent = next && new Date(next) > new Date()
+    ? `Next reminder: ${new Date(next).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} at ${new Date(next).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`
+    : settings.reminderEnabled ? 'Reminder due — will send within 1 min' : 'Reminders disabled';
   reminderOverlay.classList.add('open');
 }
 
@@ -681,8 +678,8 @@ document.getElementById('reminder-save').addEventListener('click', async () => {
     ms = freqToMs(reminderFreqSel.value);
   }
   settings.reminderFrequencyMs = ms;
-  settings.lastReminderSentAt = 0;  // reset so next app open fires immediately
   await saveSettings();
+  await syncNotifDoc(true); // push updated doc to Firestore immediately, PA picks up within 1 min
   reminderOverlay.classList.remove('open');
   showToast(`Reminders set — every ${msToLabel(ms)}`);
 });
@@ -745,42 +742,38 @@ function buildReminderEmail(taskList) {
 </table></td></tr></table></body></html>`;
 }
 
-async function postToPA(toEmail, taskList) {
-  const subject = `Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need your attention`;
-  const notifRef = doc(db, 'notifications', 'pending');
-  // Use a self-expiring ISO timestamp (70s from now).
-  // PA condition checks: pendingExpires > utcNow() — no cleanup ever needed.
-  await setDoc(notifRef, {
-    to_email: toEmail,
-    subject,
-    html_body: buildReminderEmail(taskList),
-    pendingExpires: new Date(Date.now() + 70_000).toISOString(),
-    ts: Date.now(),
-  });
-}
-
-async function sendTaskEmail(task) {
+/* ── Sync notification doc — PA reads this to send reminders without app open ── */
+let cachedNextSendAt = null;
+async function syncNotifDoc(sendImmediately = false) {
   if (!NOTIFICATIONS_CONFIGURED || !currentUser) return;
   try {
-    await postToPA(currentUser.email, [task]);
-    showToast('Reminder queued ✓ — arrives within 1 min');
-  } catch(e) {
-    console.error('Power Automate error:', e);
-    showToast('Failed: ' + e.message);
-  }
-}
-/* ── On-open reminder check ── */
-async function checkReminder() {
-  if (!NOTIFICATIONS_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
-  const freqMs = getFreqMs();
-  if (Date.now() - (settings.lastReminderSentAt || 0) < freqMs) return;
-  const open = tasks.filter(t => t.q === 'q1' && !t.done);
-  if (!open.length) return;
-  try {
-    await postToPA(currentUser.email, open);
-    settings.lastReminderSentAt = Date.now();
-    await saveSettings();
-  } catch { /* silent */ }
+    const notifRef = doc(db, 'notifications', 'pending');
+    const open     = tasks.filter(t => t.q === 'q1' && !t.done);
+    const freqMs   = getFreqMs();
+    const enabled  = !!settings.reminderEnabled;
+
+    let nextSendAt;
+    if (sendImmediately) {
+      nextSendAt = new Date().toISOString(); // past = PA sends on next poll
+    } else {
+      const snap = await getDoc(notifRef);
+      const existing = snap.exists() ? snap.data().nextSendAt : null;
+      nextSendAt = existing && new Date(existing) > new Date()
+        ? existing
+        : new Date(Date.now() + freqMs).toISOString();
+    }
+    cachedNextSendAt = nextSendAt;
+
+    await setDoc(notifRef, {
+      to_email:            currentUser.email,
+      subject:             `Matrix: ${open.length} Q1 task${open.length!==1?'s':''} need your attention`,
+      html_body:           open.length ? buildReminderEmail(open) : '',
+      tasks_count:         open.length,
+      reminderEnabled:     enabled,
+      reminderFrequencyMs: freqMs,
+      nextSendAt,
+    });
+  } catch(e) { console.error('syncNotifDoc failed:', e); }
 }
 
 /* ── Category modal ── */
