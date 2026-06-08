@@ -683,6 +683,12 @@ body::before{
 .kpi-old::before{background:linear-gradient(90deg,#92400E,#B45309);}
 .kpi-old .kpi-value{color:var(--amberD);}
 .kpi-icon-old{background:#FEF3D8;}
+.kpi-moves::before{background:linear-gradient(90deg,#5B21B6,#7C3AED);}
+.kpi-moves .kpi-value{color:#5B21B6;}
+.kpi-icon-moves{background:#EDE9FF;}
+.kpi-esc::before{background:linear-gradient(90deg,#C8102E,#E85D04);}
+.kpi-esc .kpi-value{color:var(--rust);}
+.kpi-icon-esc{background:#FAECEE;}
 .kpi-foot{
   font-size:11.5px;font-weight:500;color:var(--ink4);
   padding:8px 18px 10px;

@@ -316,7 +316,7 @@
 import { initializeApp }                                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, onSnapshot,
-         setDoc, updateDoc, deleteDoc, getDoc, writeBatch }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+         setDoc, updateDoc, deleteDoc, getDoc, writeBatch, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
   document.querySelector('.main-area').innerHTML = `
@@ -369,7 +369,7 @@ let deleteFn    = null;
 let dragId      = null;
 let searchQ     = '';
 let activeTab   = 'q1';
-let tasksRef, categoriesRef, peopleRef, settingsRef, unsubTasks;
+let tasksRef, categoriesRef, peopleRef, movementsRef, settingsRef, unsubTasks;
 
 function genId() { return Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
 function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -412,6 +412,7 @@ async function initApp(user) {
   tasksRef      = collection(db, 'users', user.uid, 'tasks');
   categoriesRef = doc(db, 'users', user.uid, 'categories', 'list');
   peopleRef     = doc(db, 'users', user.uid, 'people', 'list');
+  movementsRef  = collection(db, 'users', user.uid, 'movements');
   settingsRef   = doc(db, 'users', user.uid, 'settings', 'prefs');
 
   document.getElementById('sb-user').textContent = user.email.split('@')[0];
@@ -451,6 +452,17 @@ async function loadPeople() {
 async function savePeople() {
   try { await setDoc(peopleRef, { items: people }); }
   catch { showToast('Failed to save people'); }
+}
+
+/* ── Movement logging ── */
+async function logMovement(taskId, fromQ, toQ) {
+  if (!fromQ || fromQ === toQ) return;
+  const task = tasks.find(t => t.id === taskId);
+  try {
+    await addDoc(movementsRef, {
+      taskId, taskText: task?.text || '', from: fromQ, to: toQ, at: Date.now(),
+    });
+  } catch { /* silent — don't interrupt the user for a logging failure */ }
 }
 
 /* ── Person helpers ── */
@@ -553,7 +565,8 @@ document.getElementById('edit-save').addEventListener('click', async () => {
   const q = editQSel.value;
   let assignee = editAssigneeSel.value;
   if (assignee === '__add__') assignee = '';
-  if (q !== 'q3') assignee = '';   // delegation only meaningful in Q3
+  if (q !== 'q3') assignee = '';
+  const fromQ = tasks.find(t => t.id === editId)?.q;
   try {
     await updateDoc(doc(tasksRef, editId), {
       text: txt,
@@ -562,6 +575,7 @@ document.getElementById('edit-save').addEventListener('click', async () => {
       q,
       assignee,
     });
+    logMovement(editId, fromQ, q);
     editOverlay.classList.remove('open'); editId = null;
   } catch { showToast('Failed to save'); }
 });
@@ -1014,7 +1028,9 @@ document.querySelectorAll('.quadrant').forEach(quad => {
   quad.addEventListener('drop', async e => {
     e.preventDefault(); quad.classList.remove('drag-over');
     const id = e.dataTransfer.getData('text/plain') || dragId; if (!id) return;
-    try { await updateDoc(doc(tasksRef, id), { q: quad.getAttribute('data-q') }); }
+    const newQ  = quad.getAttribute('data-q');
+    const fromQ = tasks.find(t => t.id === id)?.q;
+    try { await updateDoc(doc(tasksRef, id), { q: newQ }); logMovement(id, fromQ, newQ); }
     catch { /* silent */ }
   });
 });
@@ -1047,7 +1063,8 @@ function makeTouchDraggable(card, id, q) {
     const tq = el ? el.closest('.quadrant') : null;
     document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
     if (tq && tq.getAttribute('data-q') !== touchOriginQ) {
-      try { await updateDoc(doc(tasksRef, touchDragId), { q: tq.getAttribute('data-q') }); }
+      const newQ = tq.getAttribute('data-q');
+      try { await updateDoc(doc(tasksRef, touchDragId), { q: newQ }); logMovement(touchDragId, touchOriginQ, newQ); }
       catch { /* silent */ }
     }
     touchClone.remove(); touchClone = null; card.style.opacity = '';

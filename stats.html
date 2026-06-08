@@ -148,6 +148,14 @@ const ALL_KPIS = [
     id:'oldest', label:'Oldest Open Task', class:'kpi-old', iconClass:'kpi-icon-old', color:'#92400E',
     icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#92400E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10M5 17h10"/><path d="M6.5 3c0 3.5 6 4 6 7s-6 3.5-6 7M13.5 3c0 3.5-6 4-6 7s6 3.5 6 7"/></svg>`,
   },
+  {
+    id:'moves', label:'Quadrant Moves', class:'kpi-moves', iconClass:'kpi-icon-moves', color:'#5B21B6',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#5B21B6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l-3 3 3 3"/><path d="M15 8l3 3-3 3"/><path d="M2 11h16"/><path d="M7 4l3-3 3 3"/><path d="M10 1v6"/></svg>`,
+  },
+  {
+    id:'escalated', label:'Escalated to Q1', class:'kpi-esc', iconClass:'kpi-icon-esc', color:'#C8102E',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#C8102E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16V5"/><path d="M5 9l5-5 5 5"/><path d="M5 17h10"/></svg>`,
+  },
 ];
 
 const ALL_CHARTS = [
@@ -157,6 +165,7 @@ const ALL_CHARTS = [
   { id:'speed',    label:'Avg completion time',  sub:'Hours from creation to done, by quadrant' },
   { id:'weekly',   label:'Weekly completions',   sub:'Last 7 days · Daily done count' },
   { id:'ratio',    label:'Done vs Open',         sub:'Completion breakdown by quadrant' },
+  { id:'flow',     label:'Quadrant flow',         sub:'How tasks move between quadrants' },
 ];
 
 const Q_COLORS = { q1:'#C8102E', q2:'#00205B', q3:'#00875A', q4:'#9BAABB' };
@@ -178,7 +187,7 @@ function sanitize(arr, valid, max) {
 let selectedKPIs   = sanitize(JSON.parse(localStorage.getItem(LS_KPIS)),   ALL_KPIS.map(k=>k.id),   4);
 let selectedCharts = sanitize(JSON.parse(localStorage.getItem(LS_CHARTS)), ALL_CHARTS.map(c=>c.id), 4);
 
-let kpiData = {}, allTasks = [], allCategories = [...DEFAULT_CATEGORIES];
+let kpiData = {}, allTasks = [], allMovements = [], allCategories = [...DEFAULT_CATEGORIES];
 let charts  = {};
 let tempKPIs, tempCharts;
 
@@ -209,6 +218,11 @@ async function loadAndRender(user) {
       '<div style="padding:32px;font-family:inherit;color:#6B7A99;">Failed to load data. Please refresh.</div>';
     return;
   }
+
+  try {
+    const movSnap = await getDocs(collection(db, 'users', user.uid, 'movements'));
+    allMovements = movSnap.docs.map(d => d.data());
+  } catch {}
 
   const dateEl = document.getElementById('dash-date');
   if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'});
@@ -251,15 +265,27 @@ function computeKPIs(tasks) {
     oldestSub = o.text.length > 26 ? o.text.slice(0,26)+'…' : o.text;
   }
 
+  const totalMoves = allMovements.length;
+  const escalated  = allMovements.filter(m => m.to === 'q1').length;
+  const topMove    = (() => {
+    const cnt = {}; allMovements.forEach(m => { const k=`${m.from}→${m.to}`; cnt[k]=(cnt[k]||0)+1; });
+    const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    if (!top) return 'No moves yet';
+    const [f,t] = top[0].split('→');
+    return `Most: ${f.toUpperCase()}→${t.toUpperCase()}`;
+  })();
+
   kpiData = {
-    open:   { value: open,       foot: `${total} total tasks` },
-    today:  { value: doneToday,  foot: 'Completed today' },
-    rate:   { value: rate+'%',   foot: `${doneAll.length} of ${total} done` },
-    avg:    { value: avgStr,     foot: avgSub },
-    total:  { value: total,      foot: `${open} open · ${doneAll.length} done` },
-    q1open: { value: q1open,     foot: 'Urgent & Important' },
-    week:   { value: doneWeek,   foot: 'Completed last 7 days' },
-    oldest: { value: oldestStr,  foot: oldestSub },
+    open:      { value: open,        foot: `${total} total tasks` },
+    today:     { value: doneToday,   foot: 'Completed today' },
+    rate:      { value: rate+'%',    foot: `${doneAll.length} of ${total} done` },
+    avg:       { value: avgStr,      foot: avgSub },
+    total:     { value: total,       foot: `${open} open · ${doneAll.length} done` },
+    q1open:    { value: q1open,      foot: 'Urgent & Important' },
+    week:      { value: doneWeek,    foot: 'Completed last 7 days' },
+    oldest:    { value: oldestStr,   foot: oldestSub },
+    moves:     { value: totalMoves,  foot: topMove },
+    escalated: { value: escalated,   foot: 'Times moved into Q1' },
   };
 }
 
@@ -316,6 +342,7 @@ function renderCharts() {
       case 'speed':    renderSpeed();    break;
       case 'weekly':   renderWeekly();   break;
       case 'ratio':    renderRatio();    break;
+      case 'flow':     renderFlow();     break;
     }
   });
 }
@@ -447,6 +474,44 @@ function renderRatio() {
       scales:{
         y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
         x:{ ticks:{font:{family:'Inter',size:10}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderFlow() {
+  const canvas = document.getElementById('chart-flow'); if (!canvas) return;
+  const pairs  = {};
+  allMovements.forEach(m => {
+    if (!m.from || !m.to || m.from === m.to) return;
+    const key = `${m.from}→${m.to}`;
+    pairs[key] = (pairs[key] || 0) + 1;
+  });
+  const sorted = Object.entries(pairs).sort((a,b) => b[1]-a[1]);
+  if (!sorted.length) {
+    canvas.parentElement.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink4);font-size:13px;font-family:inherit;">
+         No quadrant moves recorded yet.<br>Move tasks between quadrants to see data here.
+       </div>`;
+    return;
+  }
+  const qName = { q1:'Q1 Do First', q2:'Q2 Schedule', q3:'Q3 Delegate', q4:'Q4 Eliminate' };
+  const labels = sorted.map(([k]) => {
+    const [f,t] = k.split('→');
+    return `${qName[f]||f.toUpperCase()} → ${qName[t]||t.toUpperCase()}`;
+  });
+  const data   = sorted.map(([,v]) => v);
+  const colors = sorted.map(([k]) => Q_COLORS[k.split('→')[0]] + 'cc');
+  const bords  = sorted.map(([k]) => Q_COLORS[k.split('→')[0]]);
+  charts.flow = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Moves', data, backgroundColor:colors, borderColor:bords, borderWidth:1.5, borderRadius:5 }] },
+    options: baseOpts({
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        y: { ticks:{font:{family:'Inter',size:10}}, grid:{display:false} },
       },
     }),
   });
@@ -613,6 +678,20 @@ document.getElementById('export-btn').addEventListener('click', () => {
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
   wsSummary['!cols'] = [{wch:34},{wch:30}];
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  /* Sheet 3 — quadrant movement log */
+  const Q_FULL = { q1:'Q1 · Do First', q2:'Q2 · Schedule', q3:'Q3 · Delegate', q4:'Q4 · Eliminate' };
+  const movRows = allMovements.length
+    ? allMovements.slice().sort((a,b)=>(a.at||0)-(b.at||0)).map(m => ({
+        'Task'         : m.taskText || '',
+        'From Quadrant': Q_FULL[m.from] || m.from || '',
+        'To Quadrant'  : Q_FULL[m.to]   || m.to   || '',
+        'Date & Time'  : fmtDateTime(m.at),
+      }))
+    : [{ Task:'(no moves recorded yet)', 'From Quadrant':'', 'To Quadrant':'', 'Date & Time':'' }];
+  const wsMov = XLSX.utils.json_to_sheet(movRows);
+  wsMov['!cols'] = [{wch:44},{wch:26},{wch:26},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, wsMov, 'Quadrant Moves');
 
   const stamp = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `matrix-tasks-${stamp}.xlsx`);
