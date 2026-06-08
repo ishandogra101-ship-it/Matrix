@@ -30,5 +30,5 @@
  * 7. Paste that URL as the value of powerAutomateUrl below
  */
 window.NOTIFICATIONS_CONFIG = {
-  powerAutomateUrl: 'https://defaultd78a821841354026a3a81cdd7223b4.d5.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/ebf3659eb49a458289d8d507087eeaa5/triggers/manual/paths/invoke?api-version=1'
+  powerAutomateUrl: 'https://summer-fire-8a2f.ishan-dogra101.workers.dev/'
 };
