@@ -962,7 +962,6 @@ async function addTask(q, text, note, tag, assignee) {
   };
   try {
     await setDoc(doc(tasksRef, id), t);
-    if (q === 'q1' && NOTIFICATIONS_CONFIGURED) sendTaskEmail({ ...t, id });
   } catch { showToast('Failed to add task'); }
 }
 
