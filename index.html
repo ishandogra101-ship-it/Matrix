@@ -352,8 +352,7 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 /* ── Notifications (Power Automate → Outlook) ── */
-const PA_URL = window.NOTIFICATIONS_CONFIG?.powerAutomateUrl;
-const NOTIFICATIONS_CONFIGURED = !!(PA_URL && PA_URL !== 'YOUR_POWER_AUTOMATE_URL');
+const NOTIFICATIONS_CONFIGURED = true;
 
 /* ── Auth guard ── */
 onAuthStateChanged(auth, user => {
@@ -744,25 +743,21 @@ function buildReminderEmail(taskList) {
 
 async function postToPA(toEmail, taskList) {
   const subject = `Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need your attention`;
-  try {
-    const res = await fetch(PA_URL, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to_email: toEmail, subject, html_body: buildReminderEmail(taskList) }),
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  } catch(e) {
-    if (e.message === 'Failed to fetch') throw new Error('CORS blocked');
-    throw e;
-  }
+  const notifRef = doc(db, 'notifications', 'pending');
+  await setDoc(notifRef, {
+    to_email: toEmail,
+    subject,
+    html_body: buildReminderEmail(taskList),
+    pending: true,
+    ts: Date.now(),
+  });
 }
 
 async function sendTaskEmail(task) {
   if (!NOTIFICATIONS_CONFIGURED || !currentUser) return;
   try {
     await postToPA(currentUser.email, [task]);
-    showToast('Reminder sent ✓');
+    showToast('Reminder queued ✓ — arrives within 1 min');
   } catch(e) {
     console.error('Power Automate error:', e);
     showToast('Failed: ' + e.message);
