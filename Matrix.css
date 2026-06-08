@@ -309,9 +309,7 @@ body::before{
 }
 .ta-btn:hover{background:var(--surface3);color:var(--ink);}
 .ta-btn.del:hover{background:var(--rustS);color:var(--rust);}
-.ta-btn.bell:hover{background:var(--rustS);color:var(--rust);}
-.ta-btn.bell.active{color:var(--primary);}
-.ta-btn.bell.active:hover{background:var(--primaryS);color:var(--primaryD);}
+
 
 /* ── ADD FOOTER ── */
 .q-footer{padding:6px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface);}

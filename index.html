@@ -768,21 +768,14 @@ async function sendTaskEmail(task) {
     showToast('Failed: ' + e.message);
   }
 }
-async function triggerNotify(taskId) {
-  const task = tasks.find(t => t.id === taskId); if (!task) return;
-  const newVal = !task.notify;
-  try {
-    await updateDoc(doc(tasksRef, taskId), { notify: newVal });
-    showToast(newVal ? 'Reminder ON for this task' : 'Reminder OFF for this task');
-  } catch { showToast('Failed to update'); }
-}
+async function triggerNotify(taskId) { /* removed */ }
 
 /* ── On-open reminder check ── */
 async function checkReminder() {
   if (!NOTIFICATIONS_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
   const freqMs = getFreqMs();
   if (Date.now() - (settings.lastReminderSentAt || 0) < freqMs) return;
-  const open = tasks.filter(t => t.q === 'q1' && !t.done && t.notify);
+  const open = tasks.filter(t => t.q === 'q1' && !t.done);
   if (!open.length) return;
   try {
     await postToPA(currentUser.email, open);
@@ -1147,15 +1140,6 @@ function lerpColor(t) {
 
 /* ── Render ── */
 function taskHTML(t, isQ1) {
-  const bellActive = !!t.notify;
-  const bellBtn = isQ1 && NOTIFICATIONS_CONFIGURED
-    ? `<button class="ta-btn bell${bellActive?' active':''}" data-action="notify" data-id="${t.id}" title="${bellActive?'Reminder ON — click to turn off':'Reminder OFF — click to turn on'}">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="${bellActive?'currentColor':'none'}" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-          <path d="M6 1.5C4.34 1.5 3 2.84 3 4.5v3L2 9h8l-1-1.5v-3C9 2.84 7.66 1.5 6 1.5z"/>
-          <path d="M4.75 10.5a1.25 1.25 0 002.5 0"/>
-        </svg>
-      </button>`
-    : '';
   const dateStr = t.done && t.completedAt
     ? `<span class="task-date done-date">✓ ${fmtDate(t.completedAt)}</span>`
     : t.createdAt
@@ -1173,7 +1157,6 @@ function taskHTML(t, isQ1) {
       </div>
     </div>
     <div class="task-actions">
-      ${bellBtn}
       <button class="ta-btn"     data-action="edit"   data-id="${t.id}" title="Edit">✎</button>
       <button class="ta-btn del" data-action="del"    data-id="${t.id}" title="Delete">✕</button>
     </div>
