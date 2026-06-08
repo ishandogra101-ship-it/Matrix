@@ -757,7 +757,10 @@ async function sendTaskEmail(task) {
   try {
     await postToPA(currentUser.email, [task]);
     showToast('Reminder sent ✓');
-  } catch { showToast('Failed to send — check Power Automate config'); }
+  } catch(e) {
+    console.error('Power Automate error:', e);
+    showToast('Failed: ' + e.message);
+  }
 }
 function triggerNotify(taskId) {
   const task = tasks.find(t => t.id === taskId); if (!task) return;
