@@ -155,12 +155,12 @@
     <!-- Top bar -->
     <header class="topbar">
       <a href="index.html" class="nav-brand">
-        <div class="brand-icon"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 11L5 1L8 7L11 1L15 11" stroke="white" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
         <span class="nav-name">Matrix</span>
       </a>
       <nav class="nav-links">
         <a href="stats.html" class="nav-link">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M11 3.5C9.5 1.8 6.8 1.5 4.8 3C2.8 4.5 3.2 7 7 8C10.8 9 11.2 11.5 9.2 12.5C7.2 13.5 4.5 12.5 3 11"/></svg>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg>
           <span>Stats</span>
         </a>
         <a href="handbook.html" class="nav-link" target="_blank">
@@ -397,7 +397,10 @@ const PERSON_COLORS = ['#00205B','#C8102E','#00875A','#B45309','#5B21B6','#0369A
 const SELF_PERSON   = { id: 'self', name: 'Self', color: '#00205B' };
 
 const ARCHIVE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-function isArchived(t) { return t.done && t.completedAt && (Date.now() - t.completedAt) >= ARCHIVE_MS; }
+function isArchived(t) {
+  if (t.archived === true) return true;                       // manually archived
+  return t.done && t.completedAt && (Date.now() - t.completedAt) >= ARCHIVE_MS; // auto after 7 days
+}
 
 let tasks       = [];
 let categories  = [...DEFAULT_CATEGORIES];
@@ -1139,10 +1142,11 @@ function makeTouchDraggable(card, id, q) {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const id = el.getAttribute('data-id');
     const a  = el.getAttribute('data-action');
-    if      (a === 'toggle') toggleTask(id);
-    else if (a === 'edit')   openEdit(id);
-    else if (a === 'del')    deleteTask(id);
-    else if (a === 'notify') triggerNotify(id);
+    if      (a === 'toggle')  toggleTask(id);
+    else if (a === 'edit')    openEdit(id);
+    else if (a === 'del')     deleteTask(id);
+    else if (a === 'archive') archiveTask(id);
+    else if (a === 'notify')  triggerNotify(id);
   });
 });
 
@@ -1208,9 +1212,21 @@ function renderArchive() {
   document.getElementById('archive-body').innerHTML = html;
 }
 
+async function archiveTask(id) {
+  const task = tasks.find(t => t.id === id); if (!task) return;
+  try {
+    await updateDoc(doc(tasksRef, id), {
+      archived: true,
+      done: true,
+      completedAt: task.completedAt || Date.now(),
+    });
+    showToast('Moved to archive');
+  } catch { showToast('Failed to archive'); }
+}
+
 async function restoreTask(id) {
   try {
-    await updateDoc(doc(tasksRef, id), { done: false, completedAt: null });
+    await updateDoc(doc(tasksRef, id), { archived: false, done: false, completedAt: null });
     showToast('Task restored');
   } catch { showToast('Failed to restore'); }
 }
@@ -1245,6 +1261,11 @@ function taskHTML(t, isQ1) {
       <button class="ta-btn" data-action="edit" data-id="${t.id}" title="Edit">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M8.5 1.5l2 2L3.5 11H1V8.5L8.5 1.5z"/>
+        </svg>
+      </button>
+      <button class="ta-btn arch" data-action="archive" data-id="${t.id}" title="Move to archive">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.2" y="4.5" width="9.6" height="6" rx="1"/><path d="M1.2 4.5L2.5 1.5h7L10.8 4.5"/><path d="M4.5 7.2h3"/>
         </svg>
       </button>
       <button class="ta-btn del" data-action="del" data-id="${t.id}" title="Delete">

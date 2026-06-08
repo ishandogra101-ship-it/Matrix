@@ -310,6 +310,7 @@ body::before{
 }
 .ta-btn:hover{background:var(--surface3);color:var(--ink);}
 .ta-btn.del:hover{background:var(--rustS);color:var(--rust);}
+.ta-btn.arch:hover{background:var(--primaryS);color:var(--primary);}
 .ta-btn.restore-btn:hover{background:var(--greenS);color:var(--green);}
 
 /* ── ARCHIVE PANE ── */
