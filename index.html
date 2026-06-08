@@ -446,6 +446,9 @@ async function initApp(user) {
     if (firstSnap) { firstSnap = false; checkReminder(); }
   });
 
+  // Keep checking on the reminder frequency while the app is open
+  setInterval(checkReminder, 60_000); // check every minute; checkReminder skips if freq not elapsed
+
   checkMigration();
 }
 
