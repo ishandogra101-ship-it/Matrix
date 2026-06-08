@@ -204,6 +204,12 @@ function sanitize(arr, valid, max) {
 let selectedKPIs   = sanitize(JSON.parse(localStorage.getItem(LS_KPIS)),   ALL_KPIS.map(k=>k.id),   4);
 let selectedCharts = sanitize(JSON.parse(localStorage.getItem(LS_CHARTS)), ALL_CHARTS.map(c=>c.id), 4);
 
+const ARCHIVE_MS = 7 * 24 * 60 * 60 * 1000;
+function isArchived(t) {
+  if (t.archived === true) return true;
+  return t.done && t.completedAt && (Date.now() - t.completedAt) >= ARCHIVE_MS;
+}
+
 let kpiData = {}, allTasks = [], allMovements = [], allPeople = [], allCategories = [...DEFAULT_CATEGORIES];
 let charts  = {};
 let tempKPIs, tempCharts;
@@ -715,7 +721,7 @@ document.getElementById('export-btn').addEventListener('click', () => {
         'Quadrant'          : (t.q || '').toUpperCase(),
         'Quadrant Detail'   : Q_META[t.q] || '',
         'Category'          : catLabel(t.tag),
-        'Status'            : t.done ? 'Done' : 'Open',
+        'Status'            : isArchived(t) ? 'Archived' : (t.done ? 'Done' : 'Open'),
         'Date Added'        : fmtDateTime(t.createdAt),
         'Date Completed'    : fmtDateTime(t.completedAt),
         'Time to Complete'  : durationStr(completionMs),
@@ -725,12 +731,14 @@ document.getElementById('export-btn').addEventListener('click', () => {
   if (!taskRows.length) taskRows.push({ Task:'(no tasks yet)' });
 
   /* Sheet 2 — metrics summary (all computed KPIs) */
-  const total   = allTasks.length;
-  const doneAll = allTasks.filter(t => t.done);
+  const total    = allTasks.length;
+  const doneAll  = allTasks.filter(t => t.done);
+  const archived = allTasks.filter(t => isArchived(t));
   const summaryRows = [
     { Metric:'Total tasks',         Value: total },
     { Metric:'Open tasks',          Value: kpiData.open?.value ?? '' },
-    { Metric:'Completed tasks',     Value: doneAll.length },
+    { Metric:'Completed tasks',     Value: doneAll.length - archived.length },
+    { Metric:'Archived tasks',      Value: archived.length },
     { Metric:'Completion rate',     Value: kpiData.rate?.value ?? '' },
     { Metric:'Done today',          Value: kpiData.today?.value ?? '' },
     { Metric:'Done this week',      Value: kpiData.week?.value ?? '' },
