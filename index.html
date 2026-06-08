@@ -678,6 +678,7 @@ document.getElementById('reminder-save').addEventListener('click', async () => {
     ms = freqToMs(reminderFreqSel.value);
   }
   settings.reminderFrequencyMs = ms;
+  settings.lastReminderSentAt = 0;  // reset so next app open fires immediately
   await saveSettings();
   reminderOverlay.classList.remove('open');
   showToast(`Reminders set — every ${msToLabel(ms)}`);
@@ -751,6 +752,10 @@ async function postToPA(toEmail, taskList) {
     pending: true,
     ts: Date.now(),
   });
+  // Auto-clear after 90s so Power Automate only sends once
+  setTimeout(async () => {
+    try { await setDoc(notifRef, { pending: false, ts: 0 }, { merge: true }); } catch {}
+  }, 90_000);
 }
 
 async function sendTaskEmail(task) {
