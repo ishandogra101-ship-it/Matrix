@@ -823,15 +823,17 @@ body::before{
 @media(max-width:640px){
   :root{--topbar-h:54px;}
   html,body{overflow:hidden;}
-  .topbar{height:54px;padding:0 12px;gap:6px;}
-  .nav-brand{padding-right:10px;}
-  .nav-link{padding:6px 9px;}
+  .topbar{height:54px;padding:0 10px;gap:4px;}
+  .nav-name{display:none;}                          /* hide "Matrix" text, keep icon */
+  .nav-brand{padding-right:8px;border-right:none;}
+  .nav-link{padding:6px 8px;}
   .nav-link span{display:none;}
+  .stats-text{display:none;}                        /* hide "N open · M done" count */
+  #people-btn{display:none;}                        /* hide people btn — fits in settings */
   .nav-user{display:none;}
-  .search-wrap{max-width:none;flex:1;}
+  .search-wrap{flex:1;min-width:0;max-width:140px;} /* cap search so icons aren't pushed off */
   .clear-btn{display:none;}
-  .stats-text{font-size:11px;}
-  .cats-btn{padding:6px 10px;}
+  .cats-btn{padding:6px 8px;}
   .customize-btn span,.export-btn span{display:none;}
   .customize-btn,.export-btn{padding:6px 10px;}
   .kpi-row{grid-template-columns:1fr 1fr;}
