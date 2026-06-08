@@ -744,12 +744,13 @@ function buildReminderEmail(taskList) {
 
 async function postToPA(toEmail, taskList) {
   const subject = `Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need your attention`;
-  const res = await fetch(PA_URL, {
+  await fetch(PA_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors',
+    credentials: 'include',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ to_email: toEmail, subject, html_body: buildReminderEmail(taskList) }),
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
 async function sendTaskEmail(task) {
