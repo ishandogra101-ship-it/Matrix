@@ -259,6 +259,8 @@ body::before{
 .task-card:hover{border-color:var(--border2);background:var(--surface);box-shadow:var(--sh-sm);transform:translateY(-1px);}
 .task-card:active{cursor:grabbing;transform:scale(.99);}
 .task-card.dragging{opacity:.3;transform:scale(.97);}
+.task-card.drop-before{border-top:2px solid var(--primary);}
+.task-card.drop-after{border-bottom:2px solid var(--primary);}
 .task-card.done-card{opacity:.5;}
 .task-card.search-hidden{display:none;}
 .task-card.search-match{border-color:var(--primary);background:var(--primaryS);}

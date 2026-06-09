@@ -1076,6 +1076,18 @@ document.querySelectorAll('.inline-inp').forEach(inp => {
   });
 });
 
+/* ── Within-quadrant reorder ── */
+async function reorderWithinQuadrant(movedId, targetId, insertBefore, q) {
+  const body = document.getElementById(q + '-body');
+  const ids  = [...body.querySelectorAll('.task-card')].map(c => c.getAttribute('data-id'));
+  const reordered = ids.filter(id => id !== movedId);
+  const ti = reordered.indexOf(targetId);
+  reordered.splice(insertBefore ? ti : ti + 1, 0, movedId);
+  try {
+    await Promise.all(reordered.map((id, i) => updateDoc(doc(tasksRef, id), { sortOrder: i * 1000 })));
+  } catch { showToast('Reorder failed'); }
+}
+
 /* ── Drag & drop (desktop) ── */
 function makeDraggable(card, id) {
   card.setAttribute('draggable', 'true');
@@ -1083,7 +1095,30 @@ function makeDraggable(card, id) {
     dragId = id; card.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id);
   });
-  card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragId = null; });
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    document.querySelectorAll('.drop-before,.drop-after').forEach(c => c.classList.remove('drop-before','drop-after'));
+    dragId = null;
+  });
+  card.addEventListener('dragover', e => {
+    if (dragId === id) return;
+    e.preventDefault(); e.stopPropagation();
+    const mid = card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2;
+    card.classList.toggle('drop-before', e.clientY < mid);
+    card.classList.toggle('drop-after',  e.clientY >= mid);
+  });
+  card.addEventListener('dragleave', () => card.classList.remove('drop-before', 'drop-after'));
+  card.addEventListener('drop', async e => {
+    e.preventDefault(); e.stopPropagation();
+    card.classList.remove('drop-before', 'drop-after');
+    const droppedId = e.dataTransfer.getData('text/plain') || dragId;
+    if (!droppedId || droppedId === id) return;
+    const draggedTask = tasks.find(t => t.id === droppedId);
+    const targetTask  = tasks.find(t => t.id === id);
+    if (!draggedTask || draggedTask.q !== targetTask?.q) return;
+    const mid = card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2;
+    await reorderWithinQuadrant(droppedId, id, e.clientY < mid, draggedTask.q);
+  });
 }
 
 document.querySelectorAll('.quadrant').forEach(quad => {
@@ -1094,6 +1129,7 @@ document.querySelectorAll('.quadrant').forEach(quad => {
     const id = e.dataTransfer.getData('text/plain') || dragId; if (!id) return;
     const newQ  = quad.getAttribute('data-q');
     const fromQ = tasks.find(t => t.id === id)?.q;
+    if (newQ === fromQ) return;
     try { await updateDoc(doc(tasksRef, id), { q: newQ }); logMovement(id, fromQ, newQ); }
     catch { /* silent */ }
   });
@@ -1280,7 +1316,13 @@ function taskHTML(t, isQ1) {
 function render() {
   let total = 0, done = 0;
   ['q1','q2','q3','q4'].forEach(q => {
-    const qt = tasks.filter(t => t.q === q && !isArchived(t));
+    const qt = tasks.filter(t => t.q === q && !isArchived(t))
+      .sort((a, b) => {
+        if (a.sortOrder != null && b.sortOrder != null) return a.sortOrder - b.sortOrder;
+        if (a.sortOrder != null) return -1;
+        if (b.sortOrder != null) return 1;
+        return (a.createdAt ?? 0) - (b.createdAt ?? 0);
+      });
     const dc = qt.filter(t => t.done).length;
     total += qt.length; done += dc;
     document.getElementById(q + '-count').textContent = qt.length ? `${dc}/${qt.length}` : '0';
