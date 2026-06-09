@@ -1,0 +1,14 @@
+{
+  "hosting": {
+    "public": "inventory",
+    "ignore": [
+      "firebase.json",
+      "firebase-inventory.json",
+      ".firebaserc",
+      "**/.*",
+      ".github/**"
+    ],
+    "cleanUrls": true,
+    "trailingSlash": false
+  }
+}
