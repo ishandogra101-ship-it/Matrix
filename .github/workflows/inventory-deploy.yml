@@ -1,0 +1,29 @@
+name: Deploy Inventory App to Firebase
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'inventory/**'
+      - 'firebase-inventory.json'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools@latest
+
+      - name: Write service account credentials
+        run: echo "$SA_JSON" > /tmp/sa.json
+        env:
+          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_INVENTORY }}
+
+      - name: Deploy to Firebase Hosting
+        run: firebase deploy --only hosting --project inventory-4c1f3 --config firebase-inventory.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/sa.json
