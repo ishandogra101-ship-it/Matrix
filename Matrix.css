@@ -318,20 +318,28 @@ body::before{
 .q-archive{
   border-top:1px dashed var(--border2);
   background:var(--paper);
-  flex-shrink:0;max-height:200px;overflow-y:auto;
+  flex-shrink:0;
 }
 .q-archive-header{
   display:flex;align-items:center;gap:5px;
-  padding:6px 14px 5px;
+  padding:6px 14px 6px;
   font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink4);position:sticky;top:0;background:var(--paper);
+  color:var(--ink4);cursor:pointer;user-select:none;
+  transition:color var(--ease);
 }
+.q-archive-header:hover{color:var(--ink3);}
 .q-archive-count{
   background:var(--border);color:var(--ink3);
   font-size:9px;font-weight:700;
   padding:1px 5px;border-radius:var(--rpill);
 }
-.q-archive-body{padding:4px 8px 6px;}
+.q-archive-chevron{
+  margin-left:auto;transition:transform 200ms cubic-bezier(.2,0,0,1);
+  flex-shrink:0;
+}
+.q-archive.open .q-archive-chevron{transform:rotate(180deg);}
+.q-archive-body{display:none;padding:4px 8px 6px;max-height:180px;overflow-y:auto;}
+.q-archive.open .q-archive-body{display:block;}
 .archive-card{
   display:flex;align-items:center;gap:6px;
   padding:5px 8px;border-radius:var(--r8);
