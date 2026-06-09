@@ -154,16 +154,16 @@
 
     <!-- Top bar -->
     <header class="topbar">
-      <a href="/" class="nav-brand">
+      <a href="./" class="nav-brand">
         <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
         <span class="nav-name">Matrix</span>
       </a>
       <nav class="nav-links">
-        <a href="/stats" class="nav-link">
+        <a href="stats" class="nav-link">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg>
           <span>Stats</span>
         </a>
-        <a href="/handbook" class="nav-link" target="_blank">
+        <a href="handbook" class="nav-link" target="_blank">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v10a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 13.5v-10z"/><path d="M5 2v13M8 5.5h3M8 8h3M8 10.5h2"/></svg>
           <span>Guide</span>
         </a>
@@ -374,7 +374,7 @@ const NOTIFICATIONS_CONFIGURED = true;
 
 /* ── Auth guard ── */
 onAuthStateChanged(auth, user => {
-  if (!user) { window.location.href = '/login'; return; }
+  if (!user) { window.location.href = 'login'; return; }
   initApp(user);
 });
 
@@ -562,7 +562,7 @@ async function saveSettings() {
 document.getElementById('sb-logout').addEventListener('click', async () => {
   if (unsubTasks) unsubTasks();
   await signOut(auth);
-  window.location.href = '/login';
+  window.location.href = 'login';
 });
 
 /* ── Confirm dialog ── */
