@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Store Inventory — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="inventory.css">
+<script src="../firebase-config.js"></script>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+
+<div class="app-layout" id="app" style="display:none">
+
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="brand-icon">📦</div>
+      <div class="sb-name">Inventory</div>
+    </div>
+    <div class="sb-nav">
+      <a href="index.html" class="sb-link"><span class="sb-icon">📦</span><span>Stock</span></a>
+      <a href="stats.html" class="sb-link"><span class="sb-icon">📊</span><span>Stats</span></a>
+      <a href="settings.html" class="sb-link active"><span class="sb-icon">⚙️</span><span>Settings</span></a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user" id="sb-user"></div>
+      <button class="sb-logout" id="sb-logout"><span>↩</span><span>Sign out</span></button>
+    </div>
+  </nav>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-title">Settings</div>
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Back to Stock">📦</a>
+        <button class="icon-btn" id="topbar-logout" title="Sign out">↩</button>
+      </div>
+    </header>
+
+    <div class="content-scroll">
+      <div class="content-inner" style="max-width:640px;">
+
+        <!-- ITEMS -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">📦 Items</div>
+            <div id="items-count" style="font-size:12px;color:var(--ink3);font-weight:600;"></div>
+          </div>
+          <div class="settings-section-body">
+            <div class="settings-add-row">
+              <input class="mi" id="item-name" placeholder="Item name (e.g. Phenyl)" maxlength="60">
+              <select class="ms" id="item-unit">
+                <option value="litre">Litre</option>
+                <option value="kg">Kg</option>
+                <option value="pieces">Pieces</option>
+                <option value="rolls">Rolls</option>
+                <option value="packets">Packets</option>
+                <option value="boxes">Boxes</option>
+                <option value="bottles">Bottles</option>
+                <option value="bags">Bags</option>
+                <option value="pairs">Pairs</option>
+                <option value="sets">Sets</option>
+              </select>
+              <button class="settings-add-btn" id="add-item-btn">+ Add</button>
+            </div>
+            <div class="settings-list" id="items-list">
+              <div class="settings-empty" id="items-empty">No items yet. Add one above.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUPPLIERS -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">🏭 Suppliers</div>
+            <div id="suppliers-count" style="font-size:12px;color:var(--ink3);font-weight:600;"></div>
+          </div>
+          <div class="settings-section-body">
+            <div class="settings-add-row">
+              <input class="mi" id="supplier-name" placeholder="Supplier name (e.g. ABC Chemicals)" maxlength="80">
+              <button class="settings-add-btn" id="add-supplier-btn">+ Add</button>
+            </div>
+            <div class="settings-list" id="suppliers-list">
+              <div class="settings-empty" id="suppliers-empty">No suppliers yet. Add one above.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOCATIONS -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-title">📍 Locations</div>
+            <div id="locations-count" style="font-size:12px;color:var(--ink3);font-weight:600;"></div>
+          </div>
+          <div class="settings-section-body">
+            <div class="settings-add-row">
+              <input class="mi" id="location-name" placeholder="Location name (e.g. Block A Washroom)" maxlength="80">
+              <button class="settings-add-btn" id="add-location-btn">+ Add</button>
+            </div>
+            <div class="settings-list" id="locations-list">
+              <div class="settings-empty" id="locations-empty">No locations yet. Add one above.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { initializeApp }                                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut }               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc,
+         getDocs, addDoc, deleteDoc, onSnapshot,
+         getDoc, setDoc, updateDoc,
+         serverTimestamp, query, orderBy }                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser = null;
+
+/* ── Auth ── */
+onAuthStateChanged(auth, user => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  document.getElementById('sb-user').textContent = user.email;
+  document.getElementById('loading').classList.add('gone');
+  document.getElementById('app').style.display = 'flex';
+  initSettings();
+});
+
+document.getElementById('sb-logout').addEventListener('click', doSignOut);
+document.getElementById('topbar-logout').addEventListener('click', doSignOut);
+async function doSignOut() { await signOut(auth); window.location.href = 'login.html'; }
+
+/* ── Toast ── */
+function toast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' toast-'+type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+/* ── Settings init ── */
+function initSettings() {
+  listenItems();
+  loadConfig('suppliers');
+  loadConfig('locations');
+  setupItemAdd();
+  setupSupplierAdd();
+  setupLocationAdd();
+}
+
+/* ── ITEMS (Firestore collection) ── */
+function listenItems() {
+  const q = query(collection(db, 'invItems'), orderBy('name'));
+  onSnapshot(q, snap => {
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderItems(items);
+  });
+}
+
+function renderItems(items) {
+  const list  = document.getElementById('items-list');
+  const empty = document.getElementById('items-empty');
+  const count = document.getElementById('items-count');
+  count.textContent = items.length ? `${items.length} item${items.length !== 1 ? 's' : ''}` : '';
+  if (!items.length) { empty.style.display = ''; list.querySelectorAll('.settings-item').forEach(e => e.remove()); return; }
+  empty.style.display = 'none';
+  list.querySelectorAll('.settings-item').forEach(e => e.remove());
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'settings-item';
+    row.innerHTML = `
+      <span class="settings-item-name">${esc(item.name)}</span>
+      <span class="settings-item-badge">${esc(item.unit)}</span>
+      <span class="settings-item-badge" style="background:var(--greenS);color:var(--greenD);border-color:rgba(16,185,129,.2)">${item.currentStock || 0}</span>
+      <button class="settings-del-btn" title="Delete item">✕</button>
+    `;
+    row.querySelector('.settings-del-btn').addEventListener('click', () => confirmDeleteItem(item));
+    list.appendChild(row);
+  });
+}
+
+function setupItemAdd() {
+  const nameInp = document.getElementById('item-name');
+  const unitSel = document.getElementById('item-unit');
+  const btn     = document.getElementById('add-item-btn');
+  async function doAdd() {
+    const name = nameInp.value.trim();
+    if (!name) { toast('Enter an item name.', 'err'); return; }
+    btn.disabled = true;
+    try {
+      await addDoc(collection(db, 'invItems'), {
+        name, unit: unitSel.value, currentStock: 0, createdAt: serverTimestamp()
+      });
+      nameInp.value = '';
+      toast(`"${name}" added.`, 'ok');
+    } catch { toast('Failed to add item.', 'err'); }
+    btn.disabled = false;
+  }
+  btn.addEventListener('click', doAdd);
+  nameInp.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+}
+
+async function confirmDeleteItem(item) {
+  if (!confirm(`Delete "${item.name}"?\n\nExisting transaction history will be kept, but the item will no longer appear in dropdowns.`)) return;
+  try {
+    await deleteDoc(doc(db, 'invItems', item.id));
+    toast(`"${item.name}" deleted.`);
+  } catch { toast('Failed to delete item.', 'err'); }
+}
+
+/* ── CONFIG (suppliers / locations) ── */
+async function loadConfig(key) {
+  const snap = await getDoc(doc(db, 'invConfig', key));
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  renderConfig(key, items);
+}
+
+function renderConfig(key, items) {
+  const list  = document.getElementById(`${key}-list`);
+  const empty = document.getElementById(`${key}-empty`);
+  const count = document.getElementById(`${key}-count`);
+  count.textContent = items.length ? `${items.length}` : '';
+  list.querySelectorAll('.settings-item').forEach(e => e.remove());
+  if (!items.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'settings-item';
+    row.innerHTML = `
+      <span class="settings-item-name">${esc(item.name)}</span>
+      <button class="settings-del-btn" title="Remove">✕</button>
+    `;
+    row.querySelector('.settings-del-btn').addEventListener('click', () => deleteConfigItem(key, item.id));
+    list.appendChild(row);
+  });
+}
+
+async function saveConfig(key, items) {
+  await setDoc(doc(db, 'invConfig', key), { items });
+}
+
+async function deleteConfigItem(key, id) {
+  const snap = await getDoc(doc(db, 'invConfig', key));
+  const items = snap.exists() ? (snap.data().items || []) : [];
+  const updated = items.filter(i => i.id !== id);
+  await saveConfig(key, updated);
+  renderConfig(key, updated);
+  toast('Removed.');
+}
+
+function setupSupplierAdd() {
+  const inp = document.getElementById('supplier-name');
+  const btn = document.getElementById('add-supplier-btn');
+  async function doAdd() {
+    const name = inp.value.trim();
+    if (!name) { toast('Enter a supplier name.', 'err'); return; }
+    btn.disabled = true;
+    try {
+      const snap = await getDoc(doc(db, 'invConfig', 'suppliers'));
+      const items = snap.exists() ? (snap.data().items || []) : [];
+      if (items.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+        toast('Supplier already exists.', 'err'); btn.disabled = false; return;
+      }
+      const id = 'sup_' + Date.now();
+      items.push({ id, name });
+      await saveConfig('suppliers', items);
+      inp.value = '';
+      renderConfig('suppliers', items);
+      toast(`"${name}" added.`, 'ok');
+    } catch { toast('Failed to save.', 'err'); }
+    btn.disabled = false;
+  }
+  btn.addEventListener('click', doAdd);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+}
+
+function setupLocationAdd() {
+  const inp = document.getElementById('location-name');
+  const btn = document.getElementById('add-location-btn');
+  async function doAdd() {
+    const name = inp.value.trim();
+    if (!name) { toast('Enter a location name.', 'err'); return; }
+    btn.disabled = true;
+    try {
+      const snap = await getDoc(doc(db, 'invConfig', 'locations'));
+      const items = snap.exists() ? (snap.data().items || []) : [];
+      if (items.some(l => l.name.toLowerCase() === name.toLowerCase())) {
+        toast('Location already exists.', 'err'); btn.disabled = false; return;
+      }
+      const id = 'loc_' + Date.now();
+      items.push({ id, name });
+      await saveConfig('locations', items);
+      inp.value = '';
+      renderConfig('locations', items);
+      toast(`"${name}" added.`, 'ok');
+    } catch { toast('Failed to save.', 'err'); }
+    btn.disabled = false;
+  }
+  btn.addEventListener('click', doAdd);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

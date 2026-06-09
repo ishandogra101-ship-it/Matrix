@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Store Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="inventory.css">
+<script src="../firebase-config.js"></script>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+
+<div class="app-layout" id="app" style="display:none">
+
+  <!-- Sidebar (desktop) -->
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="brand-icon">📦</div>
+      <div class="sb-name">Inventory</div>
+    </div>
+    <div class="sb-nav">
+      <a href="index.html" class="sb-link active"><span class="sb-icon">📦</span><span>Stock</span></a>
+      <a href="stats.html" class="sb-link"><span class="sb-icon">📊</span><span>Stats</span></a>
+      <a href="settings.html" class="sb-link"><span class="sb-icon">⚙️</span><span>Settings</span></a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user" id="sb-user"></div>
+      <button class="sb-logout" id="sb-logout"><span>↩</span><span>Sign out</span></button>
+    </div>
+  </nav>
+
+  <!-- Main area -->
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-title">Store Inventory</div>
+      <div class="topbar-right">
+        <a href="stats.html" class="icon-btn" title="Statistics">📊</a>
+        <a href="settings.html" class="icon-btn" title="Settings">⚙️</a>
+        <button class="icon-btn" id="topbar-logout" title="Sign out">↩</button>
+      </div>
+    </header>
+
+    <!-- Desktop tabs -->
+    <div class="page-tabs">
+      <button class="page-tab active" data-tab="stock">📦 Stock</button>
+      <button class="page-tab" data-tab="add">➕ Add Stock</button>
+      <button class="page-tab" data-tab="issue">↗️ Issue Item</button>
+      <button class="page-tab" data-tab="history">📋 History</button>
+    </div>
+
+    <div class="content-scroll">
+      <div class="content-inner">
+
+        <!-- STOCK TAB -->
+        <div class="tab-panel active" id="tab-stock">
+          <div class="section-header">
+            <div class="section-title">Current Stock</div>
+            <span id="stock-meta" style="font-size:12px;color:var(--ink3);font-weight:600;"></span>
+          </div>
+          <div class="stock-grid" id="stock-grid"></div>
+          <div class="empty-state hidden" id="stock-empty">
+            <div class="empty-state-icon">📦</div>
+            <div class="empty-state-text">No items yet</div>
+            <div class="empty-state-sub">Go to Settings to add items, suppliers, and locations first.</div>
+          </div>
+        </div>
+
+        <!-- ADD STOCK TAB -->
+        <div class="tab-panel" id="tab-add">
+          <div class="form-card">
+            <div class="section-title" style="margin-bottom:18px">Add Incoming Stock</div>
+            <div id="add-err" class="form-err"></div>
+            <div id="add-ok"  class="form-ok"></div>
+            <div class="mf">
+              <label class="ml">Item</label>
+              <select class="ms" id="add-item">
+                <option value="">Select item…</option>
+              </select>
+            </div>
+            <div class="mf">
+              <label class="ml">Quantity</label>
+              <input class="mi" id="add-qty" type="number" inputmode="decimal" min="0.001" step="any" placeholder="Enter quantity">
+              <div class="stock-hint" id="add-unit-hint"></div>
+            </div>
+            <div class="mf">
+              <label class="ml">Bill / Invoice Number</label>
+              <input class="mi" id="add-bill" type="text" placeholder="e.g. INV-2024-001" maxlength="60">
+            </div>
+            <div class="mf">
+              <label class="ml">Supplier</label>
+              <select class="ms" id="add-supplier">
+                <option value="">Select supplier…</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-wide" id="add-submit" style="margin-top:4px">
+              ✓ Add to Stock
+            </button>
+          </div>
+        </div>
+
+        <!-- ISSUE ITEM TAB -->
+        <div class="tab-panel" id="tab-issue">
+          <div class="form-card">
+            <div class="section-title" style="margin-bottom:18px">Issue Item to Location</div>
+            <div id="issue-err" class="form-err"></div>
+            <div id="issue-ok"  class="form-ok"></div>
+            <div class="mf">
+              <label class="ml">Item</label>
+              <select class="ms" id="issue-item">
+                <option value="">Select item…</option>
+              </select>
+              <div class="stock-hint" id="issue-stock-hint"></div>
+            </div>
+            <div class="mf">
+              <label class="ml">Quantity</label>
+              <input class="mi" id="issue-qty" type="number" inputmode="decimal" min="0.001" step="any" placeholder="Enter quantity">
+              <div class="stock-hint" id="issue-unit-hint"></div>
+            </div>
+            <div class="mf">
+              <label class="ml">Location (where item will be used)</label>
+              <select class="ms" id="issue-location">
+                <option value="">Select location…</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-wide" id="issue-submit" style="margin-top:4px">
+              ↗️ Issue Item
+            </button>
+          </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-panel" id="tab-history">
+          <div class="section-header">
+            <div class="section-title">Transaction History</div>
+            <span id="tx-count" style="font-size:12px;color:var(--ink3);font-weight:600;"></span>
+          </div>
+          <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="in">Stock In</button>
+            <button class="filter-pill" data-filter="out">Issues</button>
+          </div>
+          <div class="tx-list" id="tx-list"></div>
+          <div class="empty-state hidden" id="tx-empty">
+            <div class="empty-state-icon">📋</div>
+            <div class="empty-state-text">No transactions yet</div>
+            <div class="empty-state-sub">Transactions appear here after adding stock or issuing items.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile bottom tab bar -->
+<div class="mobile-tab-bar">
+  <button class="mob-tab active" data-tab="stock"><span class="mob-icon">📦</span>Stock</button>
+  <button class="mob-tab" data-tab="add"><span class="mob-icon">➕</span>Add</button>
+  <button class="mob-tab" data-tab="issue"><span class="mob-icon">↗️</span>Issue</button>
+  <button class="mob-tab" data-tab="history"><span class="mob-icon">📋</span>History</button>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { initializeApp }                                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut }               from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc,
+         getDocs, addDoc, onSnapshot, runTransaction,
+         serverTimestamp, query, orderBy, limit,
+         writeBatch }                                         from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+let currentUser  = null;
+let items        = [];        // [{id, name, unit, currentStock}]
+let suppliers    = [];        // [{id, name}]
+let locations    = [];        // [{id, name}]
+let allTx        = [];        // [{id, ...txData}]
+let currentFilter = 'all';
+
+/* ── Auth ── */
+onAuthStateChanged(auth, user => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  document.getElementById('sb-user').textContent = user.email;
+  document.getElementById('loading').classList.add('gone');
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+});
+
+document.getElementById('sb-logout').addEventListener('click', doSignOut);
+document.getElementById('topbar-logout').addEventListener('click', doSignOut);
+async function doSignOut() { await signOut(auth); window.location.href = 'login.html'; }
+
+/* ── Tab switching ── */
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+name));
+  document.querySelectorAll('.page-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.mob-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+}
+
+document.querySelectorAll('.page-tab, .mob-tab').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+/* ── Toast ── */
+function toast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' toast-'+type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 2800);
+}
+
+function showMsg(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+/* ── Init ── */
+async function initApp() {
+  await loadConfig();
+  listenItems();
+  listenHistory();
+  setupAddForm();
+  setupIssueForm();
+  setupFilters();
+}
+
+/* ── Load config (suppliers + locations) ── */
+async function loadConfig() {
+  const [supSnap, locSnap] = await Promise.all([
+    getDoc(doc(db, 'invConfig', 'suppliers')),
+    getDoc(doc(db, 'invConfig', 'locations')),
+  ]);
+  suppliers = supSnap.exists() ? (supSnap.data().items || []) : [];
+  locations = locSnap.exists() ? (locSnap.data().items || []) : [];
+  populateSelect('add-supplier', suppliers, 'Select supplier…');
+  populateSelect('issue-location', locations, 'Select location…');
+}
+
+function populateSelect(id, arr, placeholder) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = `<option value="">${placeholder}</option>`;
+  arr.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.textContent = item.name;
+    sel.appendChild(opt);
+  });
+}
+
+/* ── Listen items (real-time) ── */
+function listenItems() {
+  const q = query(collection(db, 'invItems'), orderBy('name'));
+  onSnapshot(q, snap => {
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderStockGrid();
+    updateItemSelects();
+  });
+}
+
+function renderStockGrid() {
+  const grid  = document.getElementById('stock-grid');
+  const empty = document.getElementById('stock-empty');
+  const meta  = document.getElementById('stock-meta');
+
+  grid.innerHTML = '';
+  if (!items.length) {
+    empty.classList.remove('hidden');
+    meta.textContent = '';
+    return;
+  }
+  empty.classList.add('hidden');
+  const zeroCount = items.filter(i => (i.currentStock || 0) === 0).length;
+  meta.textContent = `${items.length} items${zeroCount ? ' · ' + zeroCount + ' out of stock' : ''}`;
+
+  items.forEach(item => {
+    const stock = item.currentStock || 0;
+    const cls   = stock === 0 ? 'stock-zero' : stock < 10 ? 'stock-low' : 'stock-ok';
+    const fill  = stock === 0 ? 100 : Math.min(Math.round((stock / Math.max(stock * 1.5, 50)) * 100), 100);
+    const card  = document.createElement('div');
+    card.className = `stock-card ${cls}`;
+    card.innerHTML = `
+      <div class="stock-card-name">${esc(item.name)}</div>
+      <div class="stock-card-qty">${fmt(stock)}</div>
+      <div class="stock-card-unit">${esc(item.unit)}</div>
+      <div class="stock-card-bar"><div class="stock-card-bar-fill" style="width:${fill}%"></div></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function updateItemSelects() {
+  const curAdd   = document.getElementById('add-item').value;
+  const curIssue = document.getElementById('issue-item').value;
+  populateSelect('add-item', items, 'Select item…');
+  populateSelect('issue-item', items.map(i => ({
+    id: i.id,
+    name: `${i.name}  (${fmt(i.currentStock || 0)} ${i.unit})`
+  })), 'Select item…');
+  if (curAdd)   document.getElementById('add-item').value   = curAdd;
+  if (curIssue) document.getElementById('issue-item').value = curIssue;
+  updateAddUnitHint();
+  updateIssueHints();
+}
+
+/* ── Listen history (real-time, last 200) ── */
+function listenHistory() {
+  const q = query(collection(db, 'invTx'), orderBy('createdAt', 'desc'), limit(200));
+  onSnapshot(q, snap => {
+    allTx = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderHistory();
+  });
+}
+
+function renderHistory() {
+  const list  = document.getElementById('tx-list');
+  const empty = document.getElementById('tx-empty');
+  const count = document.getElementById('tx-count');
+
+  const filtered = currentFilter === 'all' ? allTx : allTx.filter(t => t.type === currentFilter);
+  count.textContent = filtered.length ? `${filtered.length} record${filtered.length !== 1 ? 's' : ''}` : '';
+  list.innerHTML = '';
+
+  if (!filtered.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  filtered.forEach(tx => {
+    const isIn = tx.type === 'in';
+    const ts   = tx.createdAt?.toDate ? tx.createdAt.toDate() : new Date();
+    const meta = isIn
+      ? `${esc(tx.supplierName || '—')} · Bill: ${esc(tx.billNo || '—')}`
+      : `📍 ${esc(tx.locationName || '—')}`;
+    const row = document.createElement('div');
+    row.className = 'tx-item';
+    row.innerHTML = `
+      <div class="tx-badge ${isIn ? 'tx-badge-in' : 'tx-badge-out'}">${isIn ? '+' : '−'}</div>
+      <div class="tx-info">
+        <div class="tx-item-name">${esc(tx.itemName || '—')}</div>
+        <div class="tx-meta">${meta}</div>
+      </div>
+      <div class="tx-right">
+        <span class="tx-qty-val ${isIn ? 'tx-qty-in' : 'tx-qty-out'}">${isIn ? '+' : '−'}${fmt(tx.quantity)}</span>
+        <span class="tx-unit">${esc(tx.unit || '')}</span>
+        <span class="tx-time">${relTime(ts)}</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ── Filter pills ── */
+function setupFilters() {
+  document.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderHistory();
+    });
+  });
+}
+
+/* ── ADD STOCK form ── */
+function setupAddForm() {
+  document.getElementById('add-item').addEventListener('change', updateAddUnitHint);
+  document.getElementById('add-submit').addEventListener('click', submitAddStock);
+}
+
+function updateAddUnitHint() {
+  const id   = document.getElementById('add-item').value;
+  const item = items.find(i => i.id === id);
+  const hint = document.getElementById('add-unit-hint');
+  hint.textContent = item ? `Unit: ${item.unit}` : '';
+}
+
+async function submitAddStock() {
+  const itemId     = document.getElementById('add-item').value;
+  const qtyRaw     = document.getElementById('add-qty').value;
+  const billNo     = document.getElementById('add-bill').value.trim();
+  const supplierId = document.getElementById('add-supplier').value;
+
+  showMsg('add-err',''); showMsg('add-ok','');
+
+  if (!itemId)     { showMsg('add-err','Please select an item.');         return; }
+  if (!qtyRaw)     { showMsg('add-err','Please enter a quantity.');        return; }
+  if (!billNo)     { showMsg('add-err','Please enter a bill/invoice number.'); return; }
+  if (!supplierId) { showMsg('add-err','Please select a supplier.');       return; }
+
+  const qty = parseFloat(qtyRaw);
+  if (isNaN(qty) || qty <= 0) { showMsg('add-err','Quantity must be greater than 0.'); return; }
+
+  const item     = items.find(i => i.id === itemId);
+  const supplier = suppliers.find(s => s.id === supplierId);
+  const btn      = document.getElementById('add-submit');
+  btn.disabled   = true;
+
+  try {
+    const itemRef = doc(db, 'invItems', itemId);
+    await runTransaction(db, async tx => {
+      const snap   = await tx.get(itemRef);
+      const cur    = snap.data()?.currentStock || 0;
+      tx.update(itemRef, { currentStock: cur + qty });
+      const txRef  = doc(collection(db, 'invTx'));
+      tx.set(txRef, {
+        type: 'in', itemId, itemName: item.name, quantity: qty, unit: item.unit,
+        billNo, supplierId, supplierName: supplier.name,
+        createdBy: currentUser.uid, createdByEmail: currentUser.email,
+        createdAt: serverTimestamp()
+      });
+    });
+    document.getElementById('add-item').value     = '';
+    document.getElementById('add-qty').value      = '';
+    document.getElementById('add-bill').value     = '';
+    document.getElementById('add-supplier').value = '';
+    document.getElementById('add-unit-hint').textContent = '';
+    showMsg('add-ok', `Added ${fmt(qty)} ${item.unit} of "${item.name}" to stock.`);
+    toast(`+${fmt(qty)} ${item.unit} of ${item.name}`, 'ok');
+  } catch (e) {
+    showMsg('add-err','Failed to update stock. Please try again.');
+    console.error(e);
+  }
+  btn.disabled = false;
+}
+
+/* ── ISSUE ITEM form ── */
+function setupIssueForm() {
+  document.getElementById('issue-item').addEventListener('change', updateIssueHints);
+  document.getElementById('issue-submit').addEventListener('click', submitIssue);
+}
+
+function updateIssueHints() {
+  const id   = document.getElementById('issue-item').value;
+  const item = items.find(i => i.id === id);
+  document.getElementById('issue-stock-hint').textContent = item
+    ? `Current stock: ${fmt(item.currentStock || 0)} ${item.unit}`
+    : '';
+  document.getElementById('issue-unit-hint').textContent = item ? `Unit: ${item.unit}` : '';
+}
+
+async function submitIssue() {
+  const itemId     = document.getElementById('issue-item').value;
+  const qtyRaw     = document.getElementById('issue-qty').value;
+  const locationId = document.getElementById('issue-location').value;
+
+  showMsg('issue-err',''); showMsg('issue-ok','');
+
+  if (!itemId)     { showMsg('issue-err','Please select an item.');     return; }
+  if (!qtyRaw)     { showMsg('issue-err','Please enter a quantity.');    return; }
+  if (!locationId) { showMsg('issue-err','Please select a location.');   return; }
+
+  const qty = parseFloat(qtyRaw);
+  if (isNaN(qty) || qty <= 0) { showMsg('issue-err','Quantity must be greater than 0.'); return; }
+
+  const item     = items.find(i => i.id === itemId);
+  const location = locations.find(l => l.id === locationId);
+
+  if ((item.currentStock || 0) < qty) {
+    showMsg('issue-err', `Insufficient stock. Available: ${fmt(item.currentStock || 0)} ${item.unit}.`);
+    return;
+  }
+
+  const btn    = document.getElementById('issue-submit');
+  btn.disabled = true;
+
+  try {
+    const itemRef = doc(db, 'invItems', itemId);
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(itemRef);
+      const cur  = snap.data()?.currentStock || 0;
+      if (cur < qty) throw new Error('Insufficient stock');
+      tx.update(itemRef, { currentStock: cur - qty });
+      const txRef = doc(collection(db, 'invTx'));
+      tx.set(txRef, {
+        type: 'out', itemId, itemName: item.name, quantity: qty, unit: item.unit,
+        locationId, locationName: location.name,
+        createdBy: currentUser.uid, createdByEmail: currentUser.email,
+        createdAt: serverTimestamp()
+      });
+    });
+    document.getElementById('issue-item').value     = '';
+    document.getElementById('issue-qty').value      = '';
+    document.getElementById('issue-location').value = '';
+    document.getElementById('issue-stock-hint').textContent = '';
+    document.getElementById('issue-unit-hint').textContent  = '';
+    showMsg('issue-ok', `Issued ${fmt(qty)} ${item.unit} of "${item.name}" to ${location.name}.`);
+    toast(`−${fmt(qty)} ${item.unit} of ${item.name} → ${location.name}`, 'ok');
+  } catch (e) {
+    if (e.message === 'Insufficient stock') {
+      showMsg('issue-err','Insufficient stock — someone else may have updated it. Please refresh.');
+    } else {
+      showMsg('issue-err','Failed to issue item. Please try again.');
+      console.error(e);
+    }
+  }
+  btn.disabled = false;
+}
+
+/* ── Helpers ── */
+function fmt(n) {
+  const num = Number(n) || 0;
+  return num % 1 === 0 ? num.toLocaleString() : num.toLocaleString(undefined, { maximumFractionDigits: 3 });
+}
+
+function relTime(date) {
+  const diff = Date.now() - date.getTime();
+  const mins  = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days  = Math.floor(diff / 86400000);
+  if (mins < 1)   return 'just now';
+  if (mins < 60)  return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7)   return `${days}d ago`;
+  return date.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
