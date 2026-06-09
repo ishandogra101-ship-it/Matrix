@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Matrix — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../Matrix.css">
+<script src="../firebase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<!-- Customize dashboard modal -->
+<div class="cust-overlay" id="cust-overlay">
+  <div class="cust-box" id="cust-box">
+    <div class="cust-header">
+      <div class="cust-title">Customize Dashboard</div>
+      <button class="cust-close" id="cust-close">✕</button>
+    </div>
+    <div class="cust-content">
+      <div class="cust-section">
+        <div class="cust-section-title">
+          KPI Metrics
+          <span class="cust-count" id="kpi-count">4 selected</span>
+        </div>
+        <div class="cust-options" id="kpi-options"></div>
+      </div>
+      <div class="cust-section">
+        <div class="cust-section-title">
+          Charts
+          <span class="cust-count" id="chart-count">4 selected</span>
+        </div>
+        <div class="cust-options" id="chart-options"></div>
+      </div>
+    </div>
+    <div class="cust-footer">
+      <button class="cust-cancel" id="cust-cancel">Cancel</button>
+      <button class="cust-apply" id="cust-apply">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-layout">
+  <div class="main-area">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <a href="../" class="nav-brand">
+        <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
+        <span class="nav-name">Matrix</span>
+      </a>
+      <nav class="nav-links">
+        <span class="nav-link active">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg>
+          <span>Stats</span>
+        </span>
+        <a href="../handbook" class="nav-link" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v10a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 13.5v-10z"/><path d="M5 2v13M8 5.5h3M8 8h3M8 10.5h2"/></svg>
+          <span>Guide</span>
+        </a>
+      </nav>
+      <div class="topbar-right">
+        <span class="nav-user" id="sb-user"></span>
+        <button class="nav-icon-btn nav-logout" id="sb-logout" title="Sign out"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5.5"/><path d="M10.5 5.5L13.5 8l-3 2.5"/><path d="M13.5 8H6.5"/></svg></button>
+      </div>
+    </header>
+
+    <div class="stats-content" id="stats-content">
+
+      <!-- Dashboard header -->
+      <div class="dash-header">
+        <div>
+          <div class="dash-title">Dashboard</div>
+          <div class="dash-sub">Your productivity at a glance</div>
+        </div>
+        <div class="dash-actions">
+          <button class="customize-btn" id="customize-btn">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h10M2 10h10"/><circle cx="5" cy="4" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg>
+            <span>Customize</span>
+          </button>
+          <button class="export-btn" id="export-btn" title="Download all data as Excel">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1.5v7.5"/><path d="M4 6l3 3 3-3"/><path d="M2 11.5h10"/></svg>
+            <span>Export</span>
+          </button>
+          <div class="dash-date" id="dash-date"></div>
+        </div>
+      </div>
+
+      <!-- KPI cards (JS-rendered) -->
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <!-- Charts (JS-rendered) -->
+      <div class="charts-grid" id="charts-grid"></div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, getDocs,
+         doc, getDoc }                            from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+  document.querySelector('.main-area').innerHTML = `
+    <div style="padding:40px;font-family:inherit;">
+      <h2 style="font-family:'Inter',sans-serif;font-size:18px;font-weight:700;margin-bottom:12px;color:#0D1526;">Firebase setup required</h2>
+      <p style="color:#6B7A99;">Open <code style="background:#F0F3F8;padding:2px 8px;border-radius:5px;">firebase-config.js</code> and fill in your Firebase credentials.</p>
+    </div>`;
+  throw new Error('Firebase not configured');
+}
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ── KPI & Chart definitions ── */
+const ALL_KPIS = [
+  {
+    id:'open', label:'Open Tasks', class:'kpi-open', iconClass:'kpi-icon-open', color:'#C8102E',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 4.5v7" stroke="#C8102E" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="14.5" r="1.3" fill="#C8102E"/></svg>`,
+  },
+  {
+    id:'today', label:'Done Today', class:'kpi-done', iconClass:'kpi-icon-done', color:'#00875A',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4.5 4.5L16 6" stroke="#00875A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  },
+  {
+    id:'rate', label:'Completion Rate', class:'kpi-rate', iconClass:'kpi-icon-rate', color:'#00205B',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#00205B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14l5-5 4 4 5-6"/><path d="M14 7h4v4"/></svg>`,
+  },
+  {
+    id:'avg', label:'Avg Completion', class:'kpi-avg', iconClass:'kpi-icon-avg', color:'#B45309',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6.5V10l2.5 2"/></svg>`,
+  },
+  {
+    id:'total', label:'Total Tasks', class:'kpi-total', iconClass:'kpi-icon-total', color:'#6B7A99',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#6B7A99" stroke-width="1.7" stroke-linecap="round"><path d="M5 7h10M5 10h10M5 13h7"/></svg>`,
+  },
+  {
+    id:'q1open', label:'Q1 Urgent Open', class:'kpi-q1', iconClass:'kpi-icon-q1', color:'#9B1A2A',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#9B1A2A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v14"/><path d="M5 3l9 3-9 3"/></svg>`,
+  },
+  {
+    id:'week', label:'Done This Week', class:'kpi-week', iconClass:'kpi-icon-week', color:'#0355A0',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0355A0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>`,
+  },
+  {
+    id:'oldest', label:'Oldest Open Task', class:'kpi-old', iconClass:'kpi-icon-old', color:'#92400E',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#92400E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10M5 17h10"/><path d="M6.5 3c0 3.5 6 4 6 7s-6 3.5-6 7M13.5 3c0 3.5-6 4-6 7s6 3.5 6 7"/></svg>`,
+  },
+  {
+    id:'moves', label:'Quadrant Moves', class:'kpi-moves', iconClass:'kpi-icon-moves', color:'#5B21B6',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#5B21B6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l-3 3 3 3"/><path d="M15 8l3 3-3 3"/><path d="M2 11h16"/><path d="M7 4l3-3 3 3"/><path d="M10 1v6"/></svg>`,
+  },
+  {
+    id:'escalated', label:'Escalated to Q1', class:'kpi-esc', iconClass:'kpi-icon-esc', color:'#C8102E',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#C8102E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16V5"/><path d="M5 9l5-5 5 5"/><path d="M5 17h10"/></svg>`,
+  },
+  {
+    id:'delegated', label:'Tasks Delegated', class:'kpi-delegated', iconClass:'kpi-icon-delegated', color:'#00875A',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#00875A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="6" r="2.8"/><path d="M2.5 16c0-3 2.5-4.5 5.5-4.5"/><path d="M13 12l4 4-4 4"/><path d="M17 16h-5"/></svg>`,
+  },
+  {
+    id:'unassigned_q3', label:'Undelegated Q3', class:'kpi-undel', iconClass:'kpi-icon-undel', color:'#B45309',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="2.8"/><path d="M3 16c0-3 2.7-4.5 6-4.5s6 1.5 6 4.5"/><path d="M15.5 6.5v4M15.5 12.5v.5"/></svg>`,
+  },
+  {
+    id:'top_person', label:'Top Assignee', class:'kpi-topperson', iconClass:'kpi-icon-topperson', color:'#0355A0',
+    icon:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#0355A0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6" r="3"/><path d="M4 17c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M10 2v1M13.1 3.4l-.7.7M15 6.5h-1M13.1 9.6l-.7-.7"/></svg>`,
+  },
+];
+
+const ALL_CHARTS = [
+  { id:'timeline', label:'Tasks over time',      sub:'Last 30 days · Created vs completed' },
+  { id:'quadrant', label:'Open by quadrant',     sub:'Distribution of remaining work' },
+  { id:'category', label:'Tasks by category',    sub:'Total tasks per tag' },
+  { id:'speed',    label:'Avg completion time',  sub:'Hours from creation to done, by quadrant' },
+  { id:'weekly',   label:'Weekly completions',   sub:'Last 7 days · Daily done count' },
+  { id:'ratio',    label:'Done vs Open',         sub:'Completion breakdown by quadrant' },
+  { id:'flow',     label:'Quadrant flow',         sub:'How tasks move between quadrants' },
+  { id:'people',   label:'Tasks by person',       sub:'Open tasks assigned per delegatee' },
+];
+
+const Q_COLORS = { q1:'#C8102E', q2:'#00205B', q3:'#00875A', q4:'#9BAABB' };
+const DEFAULT_CATEGORIES = [
+  {id:'work',label:'Work',bg:'#e4efff',color:'#1a4a9a'},
+  {id:'personal',label:'Personal',bg:'#f3eef8',color:'#5c1a7a'},
+  {id:'health',label:'Health',bg:'#d6f7e8',color:'#047857'},
+  {id:'other',label:'Other',bg:'#f4f5fc',color:'#73769e'},
+];
+
+const LS_KPIS   = 'matrix_dash_kpis_v2';
+const LS_CHARTS = 'matrix_dash_charts_v2';
+
+function sanitize(arr, valid, max) {
+  const f = (arr || []).filter(id => valid.includes(id));
+  return f.length ? f.slice(0, max) : valid.slice(0, max);
+}
+
+let selectedKPIs   = sanitize(JSON.parse(localStorage.getItem(LS_KPIS)),   ALL_KPIS.map(k=>k.id),   4);
+let selectedCharts = sanitize(JSON.parse(localStorage.getItem(LS_CHARTS)), ALL_CHARTS.map(c=>c.id), 4);
+
+const ARCHIVE_MS = 7 * 24 * 60 * 60 * 1000;
+function isArchived(t) {
+  if (t.archived === true) return true;
+  return t.done && t.completedAt && (Date.now() - t.completedAt) >= ARCHIVE_MS;
+}
+
+let kpiData = {}, allTasks = [], allMovements = [], allPeople = [], allCategories = [...DEFAULT_CATEGORIES];
+let charts  = {};
+let tempKPIs, tempCharts;
+
+/* ── Auth ── */
+onAuthStateChanged(auth, user => {
+  if (!user) { window.location.href = '../login'; return; }
+  const sbUser = document.getElementById('sb-user');
+  if (sbUser) sbUser.textContent = user.email.split('@')[0];
+  loadAndRender(user);
+});
+
+document.getElementById('sb-logout').addEventListener('click', async () => {
+  await signOut(auth); window.location.href = '../login';
+});
+
+/* ── Load ── */
+async function loadAndRender(user) {
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid, 'categories', 'list'));
+    if (snap.exists() && snap.data().items?.length) allCategories = snap.data().items;
+  } catch {}
+
+  try {
+    const snap = await getDocs(collection(db, 'users', user.uid, 'tasks'));
+    allTasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    document.getElementById('stats-content').innerHTML =
+      '<div style="padding:32px;font-family:inherit;color:#6B7A99;">Failed to load data. Please refresh.</div>';
+    return;
+  }
+
+  try {
+    const movSnap = await getDocs(collection(db, 'users', user.uid, 'movements'));
+    allMovements = movSnap.docs.map(d => d.data());
+  } catch {}
+
+  try {
+    const pSnap = await getDoc(doc(db, 'users', user.uid, 'people', 'list'));
+    if (pSnap.exists() && Array.isArray(pSnap.data().items)) allPeople = pSnap.data().items;
+  } catch {}
+
+  const dateEl = document.getElementById('dash-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'});
+
+  computeKPIs(allTasks);
+  renderKPIs();
+  renderCharts();
+}
+
+/* ── Compute all KPI values ── */
+function computeKPIs(tasks) {
+  const todayMs = new Date().setHours(0,0,0,0);
+  const weekMs  = Date.now() - 7 * 86_400_000;
+  const doneAll = tasks.filter(t => t.done);
+  const total   = tasks.length;
+  const open    = tasks.filter(t => !t.done).length;
+  const q1open  = tasks.filter(t => t.q === 'q1' && !t.done).length;
+  const doneToday = doneAll.filter(t => t.completedAt >= todayMs).length;
+  const doneWeek  = doneAll.filter(t => t.completedAt >= weekMs).length;
+  const rate      = total ? Math.round(doneAll.length / total * 100) : 0;
+
+  const times = doneAll.filter(t => t.createdAt && t.completedAt).map(t => t.completedAt - t.createdAt);
+  let avgStr = '—', avgSub = 'No completed tasks yet';
+  if (times.length) {
+    const avgMs = times.reduce((a,b) => a+b,0) / times.length;
+    const h = Math.floor(avgMs / 3_600_000);
+    const d = Math.floor(h / 24);
+    avgStr = d > 0 ? `${d}d ${h%24}h` : (h > 0 ? `${h}h` : '< 1h');
+    avgSub = `avg of ${times.length} task${times.length>1?'s':''}`;
+  }
+
+  const openTasks = tasks.filter(t => !t.done && t.createdAt);
+  let oldestStr = '—', oldestSub = 'No open tasks';
+  if (openTasks.length) {
+    const o = openTasks.reduce((a,b) => a.createdAt < b.createdAt ? a : b);
+    const ageMs = Date.now() - o.createdAt;
+    const d = Math.floor(ageMs / 86_400_000);
+    const h = Math.floor((ageMs % 86_400_000) / 3_600_000);
+    oldestStr = d > 0 ? `${d}d` : (h > 0 ? `${h}h` : '< 1h');
+    oldestSub = o.text.length > 26 ? o.text.slice(0,26)+'…' : o.text;
+  }
+
+  const totalMoves = allMovements.length;
+  const escalated  = allMovements.filter(m => m.to === 'q1').length;
+  const topMove    = (() => {
+    const cnt = {}; allMovements.forEach(m => { const k=`${m.from}→${m.to}`; cnt[k]=(cnt[k]||0)+1; });
+    const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    if (!top) return 'No moves yet';
+    const [f,t] = top[0].split('→');
+    return `Most: ${f.toUpperCase()}→${t.toUpperCase()}`;
+  })();
+
+  /* People KPIs */
+  const q3open     = tasks.filter(t => t.q === 'q3' && !t.done);
+  const delegated  = q3open.filter(t => t.assignee && t.assignee !== 'self').length;
+  const undelQ3    = q3open.filter(t => !t.assignee || t.assignee === '').length;
+
+  /* Top assignee by open task count */
+  const personCounts = {};
+  tasks.filter(t => !t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    personCounts[t.assignee] = (personCounts[t.assignee] || 0) + 1;
+  });
+  let topPersonStr = '—', topPersonFoot = 'No delegated tasks yet';
+  const topEntry = Object.entries(personCounts).sort((a,b) => b[1]-a[1])[0];
+  if (topEntry) {
+    const p = allPeople.find(p => p.id === topEntry[0]);
+    topPersonStr = p ? p.name : 'Unknown';
+    topPersonFoot = `${topEntry[1]} open task${topEntry[1]>1?'s':''}`;
+  }
+
+  kpiData = {
+    open:        { value: open,          foot: `${total} total tasks` },
+    today:       { value: doneToday,     foot: 'Completed today' },
+    rate:        { value: rate+'%',      foot: `${doneAll.length} of ${total} done` },
+    avg:         { value: avgStr,        foot: avgSub },
+    total:       { value: total,         foot: `${open} open · ${doneAll.length} done` },
+    q1open:      { value: q1open,        foot: 'Urgent & Important' },
+    week:        { value: doneWeek,      foot: 'Completed last 7 days' },
+    oldest:      { value: oldestStr,     foot: oldestSub },
+    moves:       { value: totalMoves,    foot: topMove },
+    escalated:   { value: escalated,     foot: 'Times moved into Q1' },
+    delegated:   { value: delegated,     foot: `${q3open.length} open Q3 tasks total` },
+    unassigned_q3:{ value: undelQ3,     foot: 'Q3 tasks without an owner' },
+    top_person:  { value: topPersonStr,  foot: topPersonFoot },
+  };
+}
+
+/* ── Render KPI row ── */
+function renderKPIs() {
+  document.getElementById('kpi-row').innerHTML = selectedKPIs.map(id => {
+    const def  = ALL_KPIS.find(k => k.id === id);
+    const data = kpiData[id] || { value:'—', foot:'' };
+    return `<div class="kpi-card ${def.class}">
+      <div class="kpi-body">
+        <div>
+          <div class="kpi-value">${data.value}</div>
+          <div class="kpi-label">${def.label}</div>
+        </div>
+        <div class="kpi-icon-box ${def.iconClass}">${def.icon}</div>
+      </div>
+      <div class="kpi-foot">${data.foot}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Chart base options ── */
+function baseOpts(extra = {}) {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12, padding: 10 } } },
+    ...extra,
+  };
+}
+
+/* ── Render chart grid ── */
+function renderCharts() {
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  document.getElementById('charts-grid').innerHTML = selectedCharts.map(id => {
+    const def = ALL_CHARTS.find(c => c.id === id);
+    return `<div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">${def.label}</div>
+        <div class="chart-card-sub">${def.sub}</div>
+      </div>
+      <div class="chart-wrap" style="height:200px;">
+        <canvas id="chart-${id}"></canvas>
+      </div>
+    </div>`;
+  }).join('');
+
+  selectedCharts.forEach(id => {
+    switch (id) {
+      case 'timeline': renderTimeline(); break;
+      case 'quadrant': renderQuadrant(); break;
+      case 'category': renderCategory(); break;
+      case 'speed':    renderSpeed();    break;
+      case 'weekly':   renderWeekly();   break;
+      case 'ratio':    renderRatio();    break;
+      case 'flow':     renderFlow();     break;
+      case 'people':   renderPeople();   break;
+    }
+  });
+}
+
+/* ── Individual chart renderers ── */
+function renderTimeline() {
+  const DAYS = 30, now = Date.now();
+  const labels = [], created = new Array(DAYS).fill(0), completed = new Array(DAYS).fill(0);
+  for (let i = DAYS-1; i >= 0; i--)
+    labels.push(new Date(now - i*86_400_000).toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
+  allTasks.forEach(t => {
+    if (t.createdAt)  { const i=DAYS-1-Math.floor((now-t.createdAt)/86_400_000);  if(i>=0&&i<DAYS) created[i]++;  }
+    if (t.completedAt){ const i=DAYS-1-Math.floor((now-t.completedAt)/86_400_000);if(i>=0&&i<DAYS) completed[i]++;}
+  });
+  charts.timeline = new Chart(document.getElementById('chart-timeline'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Created',   data:created,   borderColor:'#00205B', backgroundColor:'rgba(0,32,91,.07)',   tension:.35, fill:true, pointRadius:2, borderWidth:2 },
+      { label:'Completed', data:completed, borderColor:'#00875A', backgroundColor:'rgba(0,135,90,.07)', tension:.35, fill:true, pointRadius:2, borderWidth:2 },
+    ]},
+    options: baseOpts({ scales: {
+      x:{ ticks:{maxTicksLimit:8,font:{size:10}}, grid:{display:false} },
+      y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+    }}),
+  });
+}
+
+function renderQuadrant() {
+  const open   = allTasks.filter(t => !t.done);
+  const counts = ['q1','q2','q3','q4'].map(q => open.filter(t => t.q===q).length);
+  charts.quadrant = new Chart(document.getElementById('chart-quadrant'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Q1 Do First','Q2 Schedule','Q3 Delegate','Q4 Eliminate'],
+      datasets: [{ data:counts, backgroundColor:Object.values(Q_COLORS), borderWidth:0, hoverOffset:8 }],
+    },
+    options: baseOpts({
+      cutout: '65%',
+      plugins: { legend: {
+        position: 'right',
+        labels: { font:{family:'Inter',size:11}, usePointStyle:true, pointStyle:'circle', boxWidth:7, padding:14 },
+      }},
+    }),
+  });
+}
+
+function renderCategory() {
+  const counts = Object.fromEntries(allCategories.map(c => [c.id, 0]));
+  allTasks.forEach(t => { if (counts[t.tag] !== undefined) counts[t.tag]++; });
+  charts.category = new Chart(document.getElementById('chart-category'), {
+    type: 'bar',
+    data: {
+      labels: allCategories.map(c => c.label),
+      datasets: [{ label:'Tasks', data:allCategories.map(c=>counts[c.id]||0),
+        backgroundColor:allCategories.map(c=>c.bg), borderColor:allCategories.map(c=>c.color),
+        borderWidth:1.5, borderRadius:5 }],
+    },
+    options: baseOpts({
+      indexAxis:'y',
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        y:{ ticks:{font:{family:'Inter',size:11}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderSpeed() {
+  const done  = allTasks.filter(t => t.done && t.createdAt && t.completedAt);
+  const sums  = {q1:0,q2:0,q3:0,q4:0}, cnts = {q1:0,q2:0,q3:0,q4:0};
+  done.forEach(t => { if (sums[t.q]!==undefined) { sums[t.q]+=(t.completedAt-t.createdAt)/3_600_000; cnts[t.q]++; } });
+  const avgs = ['q1','q2','q3','q4'].map(q => cnts[q] ? +(sums[q]/cnts[q]).toFixed(1) : 0);
+  charts.speed = new Chart(document.getElementById('chart-speed'), {
+    type: 'bar',
+    data: {
+      labels: ['Q1','Q2','Q3','Q4'],
+      datasets: [{ label:'Avg hours', data:avgs,
+        backgroundColor:Object.values(Q_COLORS).map(c=>c+'cc'),
+        borderColor:Object.values(Q_COLORS), borderWidth:1.5, borderRadius:6 }],
+    },
+    options: baseOpts({
+      plugins:{ legend:{display:false} },
+      scales:{
+        y:{ beginAtZero:true, ticks:{font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        x:{ ticks:{font:{family:'Inter',size:11}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderWeekly() {
+  const DAYS = 7, now = Date.now();
+  const labels = [], data = new Array(DAYS).fill(0);
+  for (let i = DAYS-1; i >= 0; i--)
+    labels.push(new Date(now - i*86_400_000).toLocaleDateString('en-IN',{day:'numeric',month:'short'}));
+  allTasks.forEach(t => {
+    if (t.completedAt) { const i=DAYS-1-Math.floor((now-t.completedAt)/86_400_000); if(i>=0&&i<DAYS) data[i]++; }
+  });
+  charts.weekly = new Chart(document.getElementById('chart-weekly'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Completed', data,
+      backgroundColor:'rgba(0,135,90,.7)', borderColor:'#00875A', borderWidth:1.5, borderRadius:5 }] },
+    options: baseOpts({
+      plugins:{ legend:{display:false} },
+      scales:{
+        y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        x:{ ticks:{font:{size:10}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderRatio() {
+  const qs = ['q1','q2','q3','q4'];
+  const colors = Object.values(Q_COLORS);
+  charts.ratio = new Chart(document.getElementById('chart-ratio'), {
+    type: 'bar',
+    data: {
+      labels: ['Q1','Q2','Q3','Q4'],
+      datasets: [
+        { label:'Done', data:qs.map(q=>allTasks.filter(t=>t.q===q&&t.done).length),
+          backgroundColor:colors.map(c=>c+'bb'), borderColor:colors, borderWidth:1.5, borderRadius:4, borderSkipped:false },
+        { label:'Open', data:qs.map(q=>allTasks.filter(t=>t.q===q&&!t.done).length),
+          backgroundColor:colors.map(c=>c+'33'), borderColor:colors.map(c=>c+'66'), borderWidth:1.5, borderRadius:4, borderSkipped:false },
+      ],
+    },
+    options: baseOpts({
+      scales:{
+        y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        x:{ ticks:{font:{family:'Inter',size:10}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderFlow() {
+  const canvas = document.getElementById('chart-flow'); if (!canvas) return;
+  const pairs  = {};
+  allMovements.forEach(m => {
+    if (!m.from || !m.to || m.from === m.to) return;
+    const key = `${m.from}→${m.to}`;
+    pairs[key] = (pairs[key] || 0) + 1;
+  });
+  const sorted = Object.entries(pairs).sort((a,b) => b[1]-a[1]);
+  if (!sorted.length) {
+    canvas.parentElement.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink4);font-size:13px;font-family:inherit;">
+         No quadrant moves recorded yet.<br>Move tasks between quadrants to see data here.
+       </div>`;
+    return;
+  }
+  const qName = { q1:'Q1 Do First', q2:'Q2 Schedule', q3:'Q3 Delegate', q4:'Q4 Eliminate' };
+  const labels = sorted.map(([k]) => {
+    const [f,t] = k.split('→');
+    return `${qName[f]||f.toUpperCase()} → ${qName[t]||t.toUpperCase()}`;
+  });
+  const data   = sorted.map(([,v]) => v);
+  const colors = sorted.map(([k]) => Q_COLORS[k.split('→')[0]] + 'cc');
+  const bords  = sorted.map(([k]) => Q_COLORS[k.split('→')[0]]);
+  charts.flow = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets: [{ label:'Moves', data, backgroundColor:colors, borderColor:bords, borderWidth:1.5, borderRadius:5 }] },
+    options: baseOpts({
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'} },
+        y: { ticks:{font:{family:'Inter',size:10}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+function renderPeople() {
+  const canvas = document.getElementById('chart-people'); if (!canvas) return;
+  /* Count open tasks per named assignee (exclude 'self' and unassigned) */
+  const counts = {};
+  allTasks.filter(t => !t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    counts[t.assignee] = (counts[t.assignee] || 0) + 1;
+  });
+  /* Also count done tasks per person for a stacked view */
+  const done = {};
+  allTasks.filter(t => t.done && t.assignee && t.assignee !== 'self' && t.assignee !== '').forEach(t => {
+    done[t.assignee] = (done[t.assignee] || 0) + 1;
+  });
+
+  const ids = [...new Set([...Object.keys(counts), ...Object.keys(done)])];
+  if (!ids.length) {
+    canvas.parentElement.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--ink4);font-size:13px;font-family:inherit;text-align:center;">
+         No delegated tasks yet.<br>Assign Q3 tasks to people to see data here.
+       </div>`;
+    return;
+  }
+  const getName = id => allPeople.find(p => p.id === id)?.name || 'Unknown';
+  const getColor = id => allPeople.find(p => p.id === id)?.color || '#9BAABB';
+  const labels   = ids.map(getName);
+  const openData = ids.map(id => counts[id] || 0);
+  const doneData = ids.map(id => done[id]   || 0);
+  const colors   = ids.map(getColor);
+
+  charts.people = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'Open', data:openData,  backgroundColor:colors.map(c=>c+'cc'), borderColor:colors, borderWidth:1.5, borderRadius:4, borderSkipped:false },
+        { label:'Done', data:doneData, backgroundColor:colors.map(c=>c+'44'), borderColor:colors.map(c=>c+'88'), borderWidth:1.5, borderRadius:4, borderSkipped:false },
+      ],
+    },
+    options: baseOpts({
+      scales:{
+        y:{ beginAtZero:true, ticks:{stepSize:1,font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}, stacked:false },
+        x:{ ticks:{font:{family:'Inter',size:11}}, grid:{display:false} },
+      },
+    }),
+  });
+}
+
+/* ── Customize modal ── */
+document.getElementById('customize-btn').addEventListener('click', () => {
+  tempKPIs   = [...selectedKPIs];
+  tempCharts = [...selectedCharts];
+  renderCustOptions();
+  document.getElementById('cust-overlay').classList.add('open');
+});
+['cust-close','cust-cancel'].forEach(id =>
+  document.getElementById(id).addEventListener('click', () =>
+    document.getElementById('cust-overlay').classList.remove('open'))
+);
+document.getElementById('cust-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('cust-overlay'))
+    document.getElementById('cust-overlay').classList.remove('open');
+});
+
+document.getElementById('cust-box').addEventListener('click', e => {
+  const btn = e.target.closest('.cust-option');
+  if (!btn || btn.disabled) return;
+  const type = btn.dataset.type;
+  const id   = btn.dataset.id;
+  if (type === 'kpi') {
+    if (tempKPIs.includes(id)) { if (tempKPIs.length > 1) tempKPIs = tempKPIs.filter(k=>k!==id); }
+    else { if (tempKPIs.length < 4) tempKPIs.push(id); }
+  } else {
+    if (tempCharts.includes(id)) { if (tempCharts.length > 1) tempCharts = tempCharts.filter(k=>k!==id); }
+    else { if (tempCharts.length < 4) tempCharts.push(id); }
+  }
+  renderCustOptions();
+});
+
+document.getElementById('cust-apply').addEventListener('click', () => {
+  selectedKPIs   = [...tempKPIs];
+  selectedCharts = [...tempCharts];
+  localStorage.setItem(LS_KPIS,   JSON.stringify(selectedKPIs));
+  localStorage.setItem(LS_CHARTS, JSON.stringify(selectedCharts));
+  document.getElementById('cust-overlay').classList.remove('open');
+  renderKPIs();
+  renderCharts();
+});
+
+function renderCustOptions() {
+  document.getElementById('kpi-options').innerHTML = ALL_KPIS.map(kpi => {
+    const sel   = tempKPIs.includes(kpi.id);
+    const maxed = !sel && tempKPIs.length >= 4;
+    return `<button class="cust-option${sel?' selected':''}${maxed?' maxed':''}"
+      data-type="kpi" data-id="${kpi.id}" ${maxed?'disabled':''}>
+      <span class="cust-dot" style="background:${sel?'var(--primary)':kpi.color}"></span>
+      ${kpi.label}
+    </button>`;
+  }).join('');
+  document.getElementById('kpi-count').textContent = `${tempKPIs.length} selected`;
+
+  document.getElementById('chart-options').innerHTML = ALL_CHARTS.map(chart => {
+    const sel   = tempCharts.includes(chart.id);
+    const maxed = !sel && tempCharts.length >= 4;
+    return `<button class="cust-option${sel?' selected':''}${maxed?' maxed':''}"
+      data-type="chart" data-id="${chart.id}" ${maxed?'disabled':''}>
+      <span class="cust-dot" style="background:${sel?'var(--primary)':'var(--border2)'}"></span>
+      ${chart.label}
+    </button>`;
+  }).join('');
+  document.getElementById('chart-count').textContent = `${tempCharts.length} selected`;
+}
+
+/* ── Export to Excel ── */
+const Q_META = {
+  q1: 'Q1 · Do First (Urgent & Important)',
+  q2: 'Q2 · Schedule (Important, Not Urgent)',
+  q3: 'Q3 · Delegate (Urgent, Not Important)',
+  q4: 'Q4 · Eliminate (Not Urgent, Not Important)',
+};
+
+function fmtDateTime(ms) {
+  if (!ms) return '';
+  return new Date(ms).toLocaleString('en-IN', {
+    day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true,
+  });
+}
+function durationStr(ms) {
+  if (ms == null || ms < 0) return '';
+  const totalH = ms / 3_600_000;
+  const d = Math.floor(totalH / 24);
+  const h = Math.round(totalH % 24);
+  if (d > 0) return `${d}d ${h}h`;
+  if (totalH >= 1) return `${Math.round(totalH)}h`;
+  return '< 1h';
+}
+
+document.getElementById('export-btn').addEventListener('click', () => {
+  if (typeof XLSX === 'undefined') { alert('Export library failed to load. Check your connection and refresh.'); return; }
+
+  const catLabel = id => (allCategories.find(c => c.id === id)?.label) || id || '';
+  const now = Date.now();
+
+  /* Sheet 1 — raw task rows */
+  const taskRows = allTasks
+    .slice()
+    .sort((a,b) => (a.createdAt||0) - (b.createdAt||0))
+    .map(t => {
+      const completionMs = (t.done && t.createdAt && t.completedAt) ? (t.completedAt - t.createdAt) : null;
+      const ageMs = (!t.done && t.createdAt) ? (now - t.createdAt) : null;
+      return {
+        'Task'              : t.text || '',
+        'Note'              : t.note || '',
+        'Quadrant'          : (t.q || '').toUpperCase(),
+        'Quadrant Detail'   : Q_META[t.q] || '',
+        'Category'          : catLabel(t.tag),
+        'Status'            : isArchived(t) ? 'Archived' : (t.done ? 'Done' : 'Open'),
+        'Date Added'        : fmtDateTime(t.createdAt),
+        'Date Completed'    : fmtDateTime(t.completedAt),
+        'Time to Complete'  : durationStr(completionMs),
+        'Age (open)'        : durationStr(ageMs),
+      };
+    });
+  if (!taskRows.length) taskRows.push({ Task:'(no tasks yet)' });
+
+  /* Sheet 2 — metrics summary (all computed KPIs) */
+  const total    = allTasks.length;
+  const doneAll  = allTasks.filter(t => t.done);
+  const archived = allTasks.filter(t => isArchived(t));
+  const summaryRows = [
+    { Metric:'Total tasks',         Value: total },
+    { Metric:'Open tasks',          Value: kpiData.open?.value ?? '' },
+    { Metric:'Completed tasks',     Value: doneAll.length - archived.length },
+    { Metric:'Archived tasks',      Value: archived.length },
+    { Metric:'Completion rate',     Value: kpiData.rate?.value ?? '' },
+    { Metric:'Done today',          Value: kpiData.today?.value ?? '' },
+    { Metric:'Done this week',      Value: kpiData.week?.value ?? '' },
+    { Metric:'Q1 urgent open',      Value: kpiData.q1open?.value ?? '' },
+    { Metric:'Avg completion time', Value: kpiData.avg?.value ?? '' },
+    { Metric:'Oldest open task age',Value: kpiData.oldest?.value ?? '' },
+    { Metric:'', Value:'' },
+    { Metric:'— By quadrant —', Value:'' },
+  ];
+  ['q1','q2','q3','q4'].forEach(q => {
+    summaryRows.push({
+      Metric: Q_META[q].split(' · ')[1] || q.toUpperCase(),
+      Value : `${allTasks.filter(t=>t.q===q&&!t.done).length} open / ${allTasks.filter(t=>t.q===q&&t.done).length} done`,
+    });
+  });
+  summaryRows.push({ Metric:'', Value:'' });
+  summaryRows.push({ Metric:'— By category —', Value:'' });
+  allCategories.forEach(c => {
+    const all  = allTasks.filter(t => t.tag === c.id);
+    summaryRows.push({ Metric: c.label, Value: `${all.filter(t=>!t.done).length} open / ${all.filter(t=>t.done).length} done` });
+  });
+  summaryRows.push({ Metric:'', Value:'' });
+  summaryRows.push({ Metric:'Exported on', Value: fmtDateTime(now) });
+
+  /* Build workbook */
+  const wb = XLSX.utils.book_new();
+
+  const wsTasks = XLSX.utils.json_to_sheet(taskRows);
+  wsTasks['!cols'] = [
+    {wch:42},{wch:36},{wch:9},{wch:42},{wch:12},
+    {wch:8},{wch:22},{wch:22},{wch:16},{wch:12},
+  ];
+  XLSX.utils.book_append_sheet(wb, wsTasks, 'Tasks');
+
+  const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+  wsSummary['!cols'] = [{wch:34},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  /* Sheet 3 — quadrant movement log */
+  const Q_FULL = { q1:'Q1 · Do First', q2:'Q2 · Schedule', q3:'Q3 · Delegate', q4:'Q4 · Eliminate' };
+  const movRows = allMovements.length
+    ? allMovements.slice().sort((a,b)=>(a.at||0)-(b.at||0)).map(m => ({
+        'Task'         : m.taskText || '',
+        'From Quadrant': Q_FULL[m.from] || m.from || '',
+        'To Quadrant'  : Q_FULL[m.to]   || m.to   || '',
+        'Date & Time'  : fmtDateTime(m.at),
+      }))
+    : [{ Task:'(no moves recorded yet)', 'From Quadrant':'', 'To Quadrant':'', 'Date & Time':'' }];
+  const wsMov = XLSX.utils.json_to_sheet(movRows);
+  wsMov['!cols'] = [{wch:44},{wch:26},{wch:26},{wch:22}];
+  XLSX.utils.book_append_sheet(wb, wsMov, 'Quadrant Moves');
+
+  const stamp = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `matrix-tasks-${stamp}.xlsx`);
+});
+</script>
+</body>
+</html>
