@@ -8,6 +8,9 @@
       ".github/**"
     ],
     "cleanUrls": true,
-    "trailingSlash": false
+    "trailingSlash": false,
+    "rewrites": [
+      { "source": "/inventory", "destination": "/inventory/index.html" }
+    ]
   }
 }
