@@ -9,7 +9,7 @@ admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db      = admin.firestore();
 const auth    = admin.auth();
 const PA_URL  = process.env.POWER_AUTOMATE_URL;
-const APP_URL = process.env.APP_URL || 'https://matrix-feb00.web.app';
+const APP_URL = process.env.APP_URL || 'https://ishandogra101-ship-it.github.io/Matrix/';
 
 if (!PA_URL || PA_URL === 'YOUR_POWER_AUTOMATE_URL') {
   console.error('POWER_AUTOMATE_URL secret is not set.');
@@ -46,45 +46,45 @@ function buildEmail(taskList, categories) {
 
   const cards = taskList.map(t => `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-           style="margin-bottom:10px;border:1.5px solid #e6e8f6;border-left:3px solid #f43f5e;
-                  border-radius:10px;background:#f6f7fd;">
+           style="margin-bottom:10px;border:1.5px solid #D5DAE8;border-left:3px solid #C8102E;
+                  border-radius:10px;background:#F7F9FC;">
       <tr><td style="padding:10px 14px;">
-        <div style="font-size:13.5px;font-weight:600;color:#15162b;line-height:1.4;">${escHtml(t.text)}</div>
+        <div style="font-size:13.5px;font-weight:600;color:#0D1526;line-height:1.4;">${escHtml(t.text)}</div>
         <div style="margin-top:5px;">
-          <span style="display:inline-block;background:#ffe3e9;color:#be123c;padding:1px 7px;
+          <span style="display:inline-block;background:#FAECEE;color:#C8102E;padding:1px 7px;
                        border-radius:100px;font-size:9px;font-weight:700;text-transform:uppercase;
                        letter-spacing:.06em;">${escHtml(getCatLabel(categories, t.tag || 'other'))}</span>
-          ${t.createdAt ? `<span style="font-size:11px;color:#a3a7c9;margin-left:6px;">Added ${fmtDate(t.createdAt)}</span>` : ''}
+          ${t.createdAt ? `<span style="font-size:11px;color:#9BAABB;margin-left:6px;">Added ${fmtDate(t.createdAt)}</span>` : ''}
         </div>
       </td></tr>
     </table>`).join('');
 
   return `<!DOCTYPE html><html lang="en">
 <head><meta charset="UTF-8"><title>Matrix Reminder</title></head>
-<body style="margin:0;padding:0;background:#eef0fb;font-family:'Segoe UI',Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0fb;">
+<body style="margin:0;padding:0;background:#F0F3F8;font-family:'Segoe UI',Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F0F3F8;">
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-  <tr><td style="background:#6366f1;background:linear-gradient(135deg,#6366f1 0%,#a855f7 100%);
+  <tr><td style="background:#00205B;background:linear-gradient(135deg,#00205B 0%,#0355A0 100%);
                  border-radius:16px 16px 0 0;padding:28px 28px 24px;">
     <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-      <td style="background:rgba(255,255,255,.2);border-radius:9px;width:34px;height:34px;
-                 text-align:center;vertical-align:middle;font-size:16px;color:white;">&#8862;</td>
-      <td style="padding-left:10px;font-size:19px;font-weight:700;color:white;">Matrix</td>
+      <td style="background:rgba(255,255,255,.18);border-radius:8px;width:34px;height:34px;
+                 text-align:center;vertical-align:middle;font-size:13px;font-weight:700;color:white;letter-spacing:-.5px;">M</td>
+      <td style="padding-left:10px;font-size:19px;font-weight:700;color:white;letter-spacing:-.5px;">Matrix</td>
     </tr></table>
-    <div style="margin-top:18px;font-size:22px;font-weight:700;color:white;line-height:1.25;">
-      &#128293; ${count} urgent task${plural} need${count === 1 ? 's' : ''} attention</div>
+    <div style="margin-top:18px;font-size:20px;font-weight:700;color:white;line-height:1.3;">
+      ${count} urgent task${plural} need${count === 1 ? 's' : ''} your attention</div>
     <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,.7);">
       Q1 &middot; Urgent &amp; Important &middot; ${date}</div>
   </td></tr>
   <tr><td style="background:#ffffff;padding:20px 24px 12px;">${cards}</td></tr>
-  <tr><td style="background:#f4f5fc;border-radius:0 0 16px 16px;padding:24px;
-                 text-align:center;border-top:1px solid #e6e8f6;">
+  <tr><td style="background:#F5F7FB;border-radius:0 0 16px 16px;padding:24px;
+                 text-align:center;border-top:1px solid #D5DAE8;">
     <a href="${APP_URL}"
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);
+       style="display:inline-block;background:#00205B;
               color:white;text-decoration:none;font-weight:700;font-size:14px;
-              padding:13px 32px;border-radius:100px;">Open Matrix App &rarr;</a>
-    <div style="margin-top:16px;font-size:11px;color:#a3a7c9;line-height:1.6;">
+              padding:13px 32px;border-radius:8px;">Open Matrix App &rarr;</a>
+    <div style="margin-top:16px;font-size:11px;color:#9BAABB;line-height:1.6;">
       You're receiving this because email reminders are enabled in your Matrix account.<br>
       Change frequency under <strong>Reminders</strong> in the sidebar.</div>
   </td></tr>
@@ -142,7 +142,7 @@ async function main() {
       }
 
       /* Send via Power Automate */
-      const subject  = `🔥 Matrix: ${taskList.length} Q1 task${taskList.length > 1 ? 's' : ''} need attention`;
+      const subject  = `Matrix: ${taskList.length} Q1 task${taskList.length > 1 ? 's' : ''} need your attention`;
       const htmlBody = buildEmail(taskList, categories);
 
       const res = await fetch(PA_URL, {

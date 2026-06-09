@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Matrix — Eisenhower Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="Matrix.css">
 <script src="firebase-config.js"></script>
 <script src="notifications-config.js"></script>
@@ -46,6 +46,10 @@
         <option value="q4">Q4 — Eliminate (Not Urgent + Not Important)</option>
       </select>
     </div>
+    <div class="mf" id="edit-assignee-field">
+      <label class="ml">Delegate to</label>
+      <select class="ms" id="edit-assignee"></select>
+    </div>
     <div class="modal-btns">
       <button class="modal-cancel" id="edit-cancel">Cancel</button>
       <button class="modal-save"   id="edit-save">Save changes</button>
@@ -60,7 +64,7 @@
     <div class="reminder-row">
       <div>
         <div class="reminder-label">Email reminders</div>
-        <div class="reminder-sub">Sends open Q1 tasks to your work email on app open</div>
+        <div class="reminder-sub">Sends pending Q1 tasks to your Outlook on a schedule — works in the background</div>
       </div>
       <label class="toggle-switch">
         <input type="checkbox" id="reminder-toggle">
@@ -71,26 +75,42 @@
     <div class="reminder-row">
       <div class="reminder-label">Frequency</div>
       <select class="freq-select" id="reminder-freq">
-        <option value="4">Every 4 hours</option>
-        <option value="8">Every 8 hours</option>
-        <option value="24">Every 24 hours</option>
-        <option value="48">Every 48 hours</option>
-        <option value="72">Every 3 days</option>
+        <optgroup label="Minutes">
+          <option value="2m">Every 2 minutes (testing)</option>
+          <option value="5m">Every 5 minutes</option>
+          <option value="15m">Every 15 minutes</option>
+          <option value="30m">Every 30 minutes</option>
+        </optgroup>
+        <optgroup label="Hours">
+          <option value="1">Every 1 hour</option>
+          <option value="4">Every 4 hours</option>
+          <option value="8">Every 8 hours</option>
+          <option value="24">Every 24 hours</option>
+        </optgroup>
+        <optgroup label="Days">
+          <option value="2d">Every 2 days</option>
+          <option value="3d">Every 3 days</option>
+          <option value="7d">Every 7 days</option>
+        </optgroup>
         <option value="custom">Custom…</option>
       </select>
     </div>
     <div class="reminder-row" id="reminder-custom-row" style="display:none">
       <div>
         <div class="reminder-label">Custom interval</div>
-        <div class="reminder-sub">Enter number of hours between reminders</div>
+        <div class="reminder-sub">Enter a number and choose the unit</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        <input type="number" id="reminder-custom-val" min="1" max="720"
+        <input type="number" id="reminder-custom-val" min="1" max="9999"
                style="width:64px;font-family:inherit;font-size:14px;font-weight:600;
                       padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--r8);
                       background:var(--surface2);color:var(--ink);outline:none;text-align:center;"
-               placeholder="24">
-        <span style="font-size:12px;color:var(--ink4);font-weight:600;">hrs</span>
+               placeholder="1">
+        <select id="reminder-custom-unit" class="freq-select" style="width:80px;padding:6px 8px;">
+          <option value="m">min</option>
+          <option value="h" selected>hrs</option>
+          <option value="d">days</option>
+        </select>
       </div>
     </div>
     <div class="reminder-last" id="reminder-last"></div>
@@ -113,40 +133,55 @@
   </div>
 </div>
 
+<!-- People management modal -->
+<div class="modal-overlay" id="people-overlay">
+  <div class="modal">
+    <div class="modal-title">Manage people</div>
+    <div class="modal-sub">People you can delegate tasks to. Use “Self” for tasks you’re keeping.</div>
+    <div id="people-list"></div>
+    <button class="add-cat-btn" id="add-person-btn">+ Add person</button>
+    <div class="modal-btns">
+      <button class="modal-save" id="people-close">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- App layout -->
 <div class="app-layout">
 
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="sb-brand">
-      <div class="brand-icon">⊞</div>
-      <div class="sb-name">Matrix</div>
-    </div>
-    <div class="sb-nav">
-      <a href="index.html" class="sb-link active">
-        <span class="sb-icon">🏠</span>
-        <span>Matrix</span>
-      </a>
-      <a href="stats.html" class="sb-link">
-        <span class="sb-icon">📊</span>
-        <span>Stats</span>
-      </a>
-    </div>
-    <div class="sb-footer">
-      <div class="sb-user" id="sb-user"></div>
-      <button class="sb-settings-btn" id="sb-reminder-btn">
-        <span class="sb-icon">🔔</span>
-        <span>Reminders</span>
-      </button>
-      <button class="sb-logout" id="sb-logout">
-        <span class="sb-icon">↩</span>
-        <span>Sign out</span>
-      </button>
-    </div>
-  </nav>
-
   <!-- Main area -->
   <div class="main-area">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <a href="/" class="nav-brand">
+        <div class="brand-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6.5" height="6.5" rx="1.5" fill="white"/><rect x="8.5" y="1" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="1" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.55"/><rect x="8.5" y="8.5" width="6.5" height="6.5" rx="1.5" fill="white" opacity="0.25"/></svg></div>
+        <span class="nav-name">Matrix</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/stats" class="nav-link">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="8.5" width="3.5" height="6" rx="1" fill="currentColor"/><rect x="6.25" y="5" width="3.5" height="9.5" rx="1" fill="currentColor"/><rect x="11" y="1.5" width="3.5" height="13" rx="1" fill="currentColor"/></svg>
+          <span>Stats</span>
+        </a>
+        <a href="/handbook" class="nav-link" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v10a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 13.5v-10z"/><path d="M5 2v13M8 5.5h3M8 8h3M8 10.5h2"/></svg>
+          <span>Guide</span>
+        </a>
+      </nav>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
+      </div>
+      <div class="topbar-right">
+        <span class="stats-text" id="stats-text"></span>
+        <button class="nav-icon-btn" id="sb-reminder-btn" title="Reminders"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2C5.79 2 4 3.79 4 6v3.5L2.5 11h11L12 9.5V6C12 3.79 10.21 2 8 2z"/><path d="M6.5 13a1.5 1.5 0 003 0"/></svg></button>
+        <button class="cats-btn" id="people-btn" title="Manage people"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2.4"/><path d="M2 13c0-2.2 1.8-3.6 4-3.6s4 1.4 4 3.6"/><path d="M10.5 3.2a2.4 2.4 0 010 4.2"/><path d="M11.5 9.6c1.7.2 3 1.5 3 3.4"/></svg></button>
+        <button class="cats-btn" id="cats-btn" title="Manage categories"><svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5.8 1h2.4l.28 1.38c.32.12.62.28.9.48l1.32-.52 1.2 2.08-.98.8c.05.26.08.52.08.78s-.03.52-.08.78l.98.8-1.2 2.08-1.32-.52c-.28.2-.58.36-.9.48L8.2 11H5.8l-.28-1.38a4 4 0 01-.9-.48l-1.32.52L2.1 7.58l.98-.8A4.1 4.1 0 013 6c0-.26.03-.52.08-.78l-.98-.8 1.2-2.08 1.32.52c.28-.2.58-.36.9-.48L5.8 1zM7 8.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"/></svg></button>
+        <button class="clear-btn" id="clear-done-btn">Clear done</button>
+        <span class="nav-user" id="sb-user"></span>
+        <button class="nav-icon-btn nav-logout" id="sb-logout" title="Sign out"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2H4a1 1 0 00-1 1v10a1 1 0 001 1h5.5"/><path d="M10.5 5.5L13.5 8l-3 2.5"/><path d="M13.5 8H6.5"/></svg></button>
+      </div>
+    </header>
 
     <!-- Migration banner -->
     <div class="migration-banner" id="migration-banner" style="display:none">
@@ -155,37 +190,24 @@
       <button class="mig-dismiss" id="mig-dismiss">Dismiss</button>
     </div>
 
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="search-wrap">
-        <span class="search-icon">⌕</span>
-        <input class="search-inp" id="search-inp" type="text" placeholder="Search tasks…" autocomplete="off">
-      </div>
-      <div class="topbar-right">
-        <span class="stats-text" id="stats-text"></span>
-        <button class="cats-btn" id="cats-btn" title="Manage categories">⚙</button>
-        <button class="clear-btn" id="clear-done-btn">Clear done</button>
-      </div>
-    </header>
-
     <!-- Axis x (desktop only) -->
     <div class="axis-x-row">
       <div></div>
-      <div class="axis-x-label ax-urgent">⚡ Urgent</div>
+      <div class="axis-x-label ax-urgent">Urgent</div>
       <div class="axis-x-label">Not Urgent</div>
     </div>
 
     <!-- Matrix -->
     <main class="matrix-wrap" id="matrix-wrap" data-active-tab="q1">
       <div class="axis-y">
-        <div class="axis-y-label ay-important">★ Important</div>
+        <div class="axis-y-label ay-important">Important</div>
         <div class="axis-y-label">Not Important</div>
       </div>
 
       <!-- Q1 -->
       <div class="quadrant q1" id="q1" data-q="q1">
         <div class="q-header">
-          <div class="q-icon" title="Expand">🔥</div>
+          <div class="q-icon" title="Expand"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2.5v5" stroke="#C8102E" stroke-width="1.8" stroke-linecap="round"/><circle cx="7" cy="10.5" r="1" fill="#C8102E"/></svg></div>
           <div class="q-label">
             <div class="q-action">Do First</div>
             <div class="q-desc">Urgent · Important</div>
@@ -211,7 +233,7 @@
       <!-- Q2 -->
       <div class="quadrant q2" id="q2" data-q="q2">
         <div class="q-header">
-          <div class="q-icon" title="Expand">📅</div>
+          <div class="q-icon" title="Expand"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#00205B" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="5.5"/><path d="M7 4V7l2.5 1.5"/></svg></div>
           <div class="q-label">
             <div class="q-action">Schedule</div>
             <div class="q-desc">Not Urgent · Important</div>
@@ -236,7 +258,7 @@
       <!-- Q3 -->
       <div class="quadrant q3" id="q3" data-q="q3">
         <div class="q-header">
-          <div class="q-icon" title="Expand">🤝</div>
+          <div class="q-icon" title="Expand"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#00875A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10"/><path d="M8 3.5L12 7l-4 3.5"/></svg></div>
           <div class="q-label">
             <div class="q-action">Delegate</div>
             <div class="q-desc">Urgent · Not Important</div>
@@ -253,7 +275,10 @@
               <button class="inline-cancel" data-q="q3">✕</button>
             </div>
             <input class="inline-note" data-q="q3" placeholder="Note (optional)…" type="text">
-            <div class="inline-selrow"><select class="inline-sel" data-q="q3"></select></div>
+            <div class="inline-selrow">
+              <select class="inline-sel" data-q="q3"></select>
+              <select class="inline-assignee" data-q="q3"></select>
+            </div>
           </div>
         </div>
       </div>
@@ -261,7 +286,7 @@
       <!-- Q4 -->
       <div class="quadrant q4" id="q4" data-q="q4">
         <div class="q-header">
-          <div class="q-icon" title="Expand">🗑️</div>
+          <div class="q-icon" title="Expand"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8" stroke="#9BAABB" stroke-width="2" stroke-linecap="round"/></svg></div>
           <div class="q-label">
             <div class="q-action">Eliminate</div>
             <div class="q-desc">Not Urgent · Not Important</div>
@@ -282,25 +307,43 @@
           </div>
         </div>
       </div>
+      <!-- Archive pane — shown when tasks have been done for 7+ days -->
+      <div class="archive-pane" id="archive-pane">
+        <div class="archive-header">
+          <div class="archive-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="5.5" width="11" height="7" rx="1.2"/><path d="M1.5 5.5L3 2.5h8l1.5 3"/><path d="M5 9h4"/></svg>
+          </div>
+          <div>
+            <div class="archive-title">Archive</div>
+            <div class="archive-sub">Completed 7+ days ago</div>
+          </div>
+          <span class="archive-badge" id="archive-count"></span>
+        </div>
+        <div class="archive-body" id="archive-body"></div>
+      </div>
     </main>
 
     <!-- Mobile tab bar -->
     <nav class="tab-bar" id="tab-bar">
       <button class="tab-btn tq1 active" data-q="q1">
-        <span class="tab-icon">🔥</span>
+        <span class="tab-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 3.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="13.5" r="1.5" fill="currentColor"/></svg></span>
         <span>Do First</span>
       </button>
       <button class="tab-btn tq2" data-q="q2">
-        <span class="tab-icon">📅</span>
+        <span class="tab-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="6.5"/><path d="M9 5.5V9l3 2"/></svg></span>
         <span>Schedule</span>
       </button>
       <button class="tab-btn tq3" data-q="q3">
-        <span class="tab-icon">🤝</span>
+        <span class="tab-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h12"/><path d="M10.5 4.5L15 9l-4.5 4.5"/></svg></span>
         <span>Delegate</span>
       </button>
       <button class="tab-btn tq4" data-q="q4">
-        <span class="tab-icon">🗑️</span>
+        <span class="tab-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
         <span>Eliminate</span>
+      </button>
+      <button class="tab-btn archive-tab" data-q="archive" id="archive-tab" style="display:none">
+        <span class="tab-icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="14" height="9" rx="1.5"/><path d="M2 7L3.8 3H14.2L16 7"/><path d="M6.5 11h5"/></svg></span>
+        <span>Archive</span>
       </button>
     </nav>
 
@@ -311,7 +354,7 @@
 import { initializeApp }                                              from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut }                      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, doc, onSnapshot,
-         setDoc, updateDoc, deleteDoc, getDoc, writeBatch }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+         setDoc, updateDoc, deleteDoc, getDoc, writeBatch, addDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 if (window.FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
   document.querySelector('.main-area').innerHTML = `
@@ -327,12 +370,11 @@ const auth = getAuth(app);
 const db   = getFirestore(app);
 
 /* ── Notifications (Power Automate → Outlook) ── */
-const PA_URL = window.NOTIFICATIONS_CONFIG?.powerAutomateUrl;
-const NOTIFICATIONS_CONFIGURED = !!(PA_URL && PA_URL !== 'YOUR_POWER_AUTOMATE_URL');
+const NOTIFICATIONS_CONFIGURED = true;
 
 /* ── Auth guard ── */
 onAuthStateChanged(auth, user => {
-  if (!user) { window.location.href = 'login.html'; return; }
+  if (!user) { window.location.href = '/login'; return; }
   initApp(user);
 });
 
@@ -350,16 +392,27 @@ const DEFAULT_CATEGORIES = [
   {id:'other',    label:'Other',    bg:'#f4f5fc', color:'#73769e'},
 ];
 
+/* People you can delegate to. "Self" is always available implicitly. */
+const PERSON_COLORS = ['#00205B','#C8102E','#00875A','#B45309','#5B21B6','#0369A1','#A21CAF','#0F766E'];
+const SELF_PERSON   = { id: 'self', name: 'Self', color: '#00205B' };
+
+const ARCHIVE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+function isArchived(t) {
+  if (t.archived === true) return true;                       // manually archived
+  return t.done && t.completedAt && (Date.now() - t.completedAt) >= ARCHIVE_MS; // auto after 7 days
+}
+
 let tasks       = [];
 let categories  = [...DEFAULT_CATEGORIES];
-let settings    = { reminderEnabled: false, reminderFrequencyHours: 24, lastReminderSentAt: 0 };
+let people      = [];
+let settings    = { reminderEnabled: false, reminderFrequencyMs: 86_400_000, lastReminderSentAt: 0 };
 let currentUser = null;
 let editId      = null;
 let deleteFn    = null;
 let dragId      = null;
 let searchQ     = '';
 let activeTab   = 'q1';
-let tasksRef, categoriesRef, settingsRef, unsubTasks;
+let tasksRef, categoriesRef, peopleRef, movementsRef, settingsRef, unsubTasks;
 
 function genId() { return Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
 function esc(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -401,18 +454,20 @@ async function initApp(user) {
   currentUser   = user;
   tasksRef      = collection(db, 'users', user.uid, 'tasks');
   categoriesRef = doc(db, 'users', user.uid, 'categories', 'list');
+  peopleRef     = doc(db, 'users', user.uid, 'people', 'list');
+  movementsRef  = collection(db, 'users', user.uid, 'movements');
   settingsRef   = doc(db, 'users', user.uid, 'settings', 'prefs');
 
   document.getElementById('sb-user').textContent = user.email.split('@')[0];
 
-  await Promise.all([loadCategories(), loadSettings()]);
+  await Promise.all([loadCategories(), loadPeople(), loadSettings()]);
   refreshAllSelects();
 
   let firstSnap = true;
   unsubTasks = onSnapshot(tasksRef, snap => {
     tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     render();
-    if (firstSnap) { firstSnap = false; checkReminder(); }
+    if (firstSnap) { firstSnap = false; syncNotifDoc(); }
   });
 
   checkMigration();
@@ -428,6 +483,67 @@ async function loadCategories() {
 async function saveCategories() {
   try { await setDoc(categoriesRef, { items: categories }); }
   catch { showToast('Failed to save categories'); }
+}
+
+/* ── Firestore: people ── */
+async function loadPeople() {
+  try {
+    const snap = await getDoc(peopleRef);
+    if (snap.exists() && Array.isArray(snap.data().items)) people = snap.data().items;
+  } catch { /* none yet */ }
+}
+async function savePeople() {
+  try { await setDoc(peopleRef, { items: people }); }
+  catch { showToast('Failed to save people'); }
+}
+
+/* ── Movement logging ── */
+async function logMovement(taskId, fromQ, toQ) {
+  if (!fromQ || fromQ === toQ) return;
+  const task = tasks.find(t => t.id === taskId);
+  try {
+    await addDoc(movementsRef, {
+      taskId, taskText: task?.text || '', from: fromQ, to: toQ, at: Date.now(),
+    });
+  } catch { /* silent — don't interrupt the user for a logging failure */ }
+}
+
+/* ── Person helpers ── */
+function getPerson(id) {
+  if (!id) return null;
+  if (id === 'self') return SELF_PERSON;
+  return people.find(p => p.id === id) || null;
+}
+function initials(name) {
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+function buildPeopleOptions(selectedId) {
+  const sel = selectedId || '';
+  let html  = `<option value=""${sel === '' ? ' selected' : ''}>Unassigned</option>`;
+  html     += `<option value="self"${sel === 'self' ? ' selected' : ''}>Self</option>`;
+  people.forEach(p => {
+    html += `<option value="${esc(p.id)}"${p.id === sel ? ' selected' : ''}>${esc(p.name)}</option>`;
+  });
+  html += `<option value="__add__">＋ Add new person…</option>`;
+  return html;
+}
+function refreshAssigneeSelects() {
+  document.querySelectorAll('.inline-assignee').forEach(sel => {
+    const cur = sel.value === '__add__' ? '' : sel.value;
+    sel.innerHTML = buildPeopleOptions(cur);
+  });
+}
+/* Small person icon + name shown on delegated cards. */
+function personChip(id) {
+  const p = getPerson(id);
+  if (!p) return '';
+  const c = p.color || '#00205B';
+  return `<span class="assignee-chip" title="Delegated to ${esc(p.name)}">
+            <svg class="assignee-ic" width="11" height="11" viewBox="0 0 12 12" fill="${c}"><circle cx="6" cy="3.5" r="2.3"/><path d="M1.5 11c0-2.4 2-3.8 4.5-3.8s4.5 1.4 4.5 3.8z"/></svg>
+            <span class="assignee-name">${esc(p.name)}</span>
+          </span>`;
 }
 
 /* ── Firestore: settings ── */
@@ -446,7 +562,7 @@ async function saveSettings() {
 document.getElementById('sb-logout').addEventListener('click', async () => {
   if (unsubTasks) unsubTasks();
   await signOut(auth);
-  window.location.href = 'login.html';
+  window.location.href = '/login';
 });
 
 /* ── Confirm dialog ── */
@@ -471,16 +587,38 @@ document.getElementById('edit-cancel').addEventListener('click', () => {
 editOverlay.addEventListener('click', e => {
   if (e.target === editOverlay) { editOverlay.classList.remove('open'); editId = null; }
 });
+const editQSel        = document.getElementById('edit-q');
+const editAssigneeSel = document.getElementById('edit-assignee');
+const editAssigneeFld = document.getElementById('edit-assignee-field');
+
+/* The Delegate-to field only applies to Q3. */
+function toggleEditAssignee() {
+  editAssigneeFld.style.display = editQSel.value === 'q3' ? '' : 'none';
+}
+function rebuildEditAssignee() {
+  const cur = editAssigneeSel.value === '__add__' ? '' : editAssigneeSel.value;
+  editAssigneeSel.innerHTML = buildPeopleOptions(cur);
+}
+editQSel.addEventListener('change', toggleEditAssignee);
+editAssigneeSel.addEventListener('change', () => handleAssigneePick(editAssigneeSel));
+
 document.getElementById('edit-save').addEventListener('click', async () => {
   const txt = document.getElementById('edit-text').value.trim();
   if (!txt || !editId) return;
+  const q = editQSel.value;
+  let assignee = editAssigneeSel.value;
+  if (assignee === '__add__') assignee = '';
+  if (q !== 'q3') assignee = '';
+  const fromQ = tasks.find(t => t.id === editId)?.q;
   try {
     await updateDoc(doc(tasksRef, editId), {
       text: txt,
       note: document.getElementById('edit-note').value.trim(),
       tag:  document.getElementById('edit-tag').value,
-      q:    document.getElementById('edit-q').value,
+      q,
+      assignee,
     });
+    logMovement(editId, fromQ, q);
     editOverlay.classList.remove('open'); editId = null;
   } catch { showToast('Failed to save'); }
 });
@@ -490,34 +628,55 @@ function openEdit(id) {
   document.getElementById('edit-text').value = t.text;
   document.getElementById('edit-note').value = t.note || '';
   document.getElementById('edit-tag').innerHTML = buildCatOptions(t.tag || 'work');
-  document.getElementById('edit-q').value = t.q;
+  editQSel.value = t.q;
+  editAssigneeSel.innerHTML = buildPeopleOptions(t.assignee || '');
+  toggleEditAssignee();
   editOverlay.classList.add('open');
   setTimeout(() => document.getElementById('edit-text').focus(), 100);
 }
 
 /* ── Reminder settings modal ── */
-const reminderOverlay   = document.getElementById('reminder-overlay');
-const reminderFreqSel   = document.getElementById('reminder-freq');
-const reminderCustomRow = document.getElementById('reminder-custom-row');
-const reminderCustomVal = document.getElementById('reminder-custom-val');
+const reminderOverlay    = document.getElementById('reminder-overlay');
+const reminderFreqSel    = document.getElementById('reminder-freq');
+const reminderCustomRow  = document.getElementById('reminder-custom-row');
+const reminderCustomVal  = document.getElementById('reminder-custom-val');
+const reminderCustomUnit = document.getElementById('reminder-custom-unit');
 
-const PRESET_HOURS = ['4','8','24','48','72'];
+const PRESET_VALS = ['2m','5m','15m','30m','1','4','8','24','2d','3d','7d'];
+
+function freqToMs(val) {
+  if (val.endsWith('m')) return parseInt(val) * 60_000;
+  if (val.endsWith('d')) return parseInt(val) * 86_400_000;
+  return parseInt(val) * 3_600_000;
+}
+function msToLabel(ms) {
+  if (ms < 3_600_000) return `${Math.round(ms / 60_000)} min`;
+  if (ms < 86_400_000) return `${Math.round(ms / 3_600_000)}h`;
+  return `${Math.round(ms / 86_400_000)} day${Math.round(ms/86_400_000)!==1?'s':''}`;
+}
+function getFreqMs() {
+  return settings.reminderFrequencyMs
+    || (settings.reminderFrequencyHours ? settings.reminderFrequencyHours * 3_600_000 : 86_400_000);
+}
 
 function openReminderModal() {
   document.getElementById('reminder-toggle').checked = !!settings.reminderEnabled;
-  const h = String(settings.reminderFrequencyHours || 24);
-  if (PRESET_HOURS.includes(h)) {
-    reminderFreqSel.value = h;
+  const ms = getFreqMs();
+  const match = PRESET_VALS.find(v => freqToMs(v) === ms);
+  if (match) {
+    reminderFreqSel.value = match;
     reminderCustomRow.style.display = 'none';
   } else {
-    reminderFreqSel.value       = 'custom';
-    reminderCustomVal.value     = h;
+    reminderFreqSel.value = 'custom';
+    if (ms < 3_600_000) { reminderCustomVal.value = Math.round(ms/60_000); reminderCustomUnit.value = 'm'; }
+    else if (ms < 86_400_000) { reminderCustomVal.value = Math.round(ms/3_600_000); reminderCustomUnit.value = 'h'; }
+    else { reminderCustomVal.value = Math.round(ms/86_400_000); reminderCustomUnit.value = 'd'; }
     reminderCustomRow.style.display = '';
   }
-  const last = settings.lastReminderSentAt;
-  document.getElementById('reminder-last').textContent = last
-    ? `Last sent: ${new Date(last).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} at ${new Date(last).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`
-    : 'Not sent yet';
+  const next = cachedNextSendAt;
+  document.getElementById('reminder-last').textContent = next && new Date(next) > new Date()
+    ? `Next reminder: ${new Date(next).toLocaleDateString('en-IN',{day:'numeric',month:'short'})} at ${new Date(next).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}`
+    : settings.reminderEnabled ? 'Reminder due — will send within 1 min' : 'Reminders disabled';
   reminderOverlay.classList.add('open');
 }
 
@@ -532,17 +691,21 @@ reminderOverlay.addEventListener('click', e => { if (e.target === reminderOverla
 
 document.getElementById('reminder-save').addEventListener('click', async () => {
   settings.reminderEnabled = document.getElementById('reminder-toggle').checked;
+  let ms;
   if (reminderFreqSel.value === 'custom') {
     const v = parseInt(reminderCustomVal.value, 10);
     if (!v || v < 1) { reminderCustomVal.style.borderColor = 'var(--rust)'; reminderCustomVal.focus(); return; }
     reminderCustomVal.style.borderColor = '';
-    settings.reminderFrequencyHours = v;
+    const u = reminderCustomUnit.value;
+    ms = u === 'm' ? v * 60_000 : u === 'd' ? v * 86_400_000 : v * 3_600_000;
   } else {
-    settings.reminderFrequencyHours = parseInt(reminderFreqSel.value, 10);
+    ms = freqToMs(reminderFreqSel.value);
   }
+  settings.reminderFrequencyMs = ms;
   await saveSettings();
+  await syncNotifDoc(true);
   reminderOverlay.classList.remove('open');
-  showToast(`Reminders set — every ${settings.reminderFrequencyHours}h when app is open`);
+  showToast(settings.reminderEnabled ? `Reminders on — every ${msToLabel(ms)}` : 'Reminders disabled');
 });
 
 /* ── Notifications via Power Automate → Outlook ── */
@@ -556,87 +719,86 @@ function buildReminderEmail(taskList) {
   const date   = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
   const appUrl = window.location.origin + window.location.pathname;
 
-  const cards = taskList.map(t => `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-           style="margin-bottom:10px;border:1.5px solid #e6e8f6;border-left:3px solid #f43f5e;
-                  border-radius:10px;background:#f6f7fd;">
-      <tr><td style="padding:10px 14px;">
-        <div style="font-size:13.5px;font-weight:600;color:#15162b;line-height:1.4;">${escHtml(t.text)}</div>
-        <div style="margin-top:5px;">
-          <span style="display:inline-block;background:#ffe3e9;color:#be123c;padding:1px 7px;
-                       border-radius:100px;font-size:9px;font-weight:700;text-transform:uppercase;
-                       letter-spacing:.06em;">${escHtml(getCatLabel(t.tag||'other'))}</span>
-          ${t.createdAt ? `<span style="font-size:11px;color:#a3a7c9;margin-left:6px;">Added ${fmtDate(t.createdAt)}</span>` : ''}
-        </div>
-      </td></tr>
-    </table>`).join('');
+  const rows = taskList.map((t, i) => {
+    const sep = i < taskList.length - 1
+      ? 'border-bottom:1px solid #EEF2F8;' : '';
+    return `<tr><td style="padding:14px 0 14px 16px;border-left:3px solid #C8102E;${sep}">
+      <div style="font-size:14px;font-weight:600;color:#0D1526;line-height:1.4;margin-bottom:6px;">${escHtml(t.text)}</div>
+      <span style="display:inline-block;background:#FEF0F2;color:#C8102E;font-size:11px;font-weight:600;
+                   padding:2px 8px;border-radius:20px;">${escHtml(getCatLabel(t.tag||'other'))}</span>
+      ${t.createdAt ? `<span style="font-size:11px;color:#9BAABB;margin-left:8px;">Added ${fmtDate(t.createdAt)}</span>` : ''}
+    </td></tr>`;
+  }).join('');
 
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Matrix Reminder</title></head>
-<body style="margin:0;padding:0;background:#eef0fb;font-family:'Segoe UI',Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef0fb;">
-<tr><td align="center" style="padding:32px 16px;">
-<table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-  <tr><td style="background:#6366f1;background:linear-gradient(135deg,#6366f1 0%,#a855f7 100%);
-                 border-radius:16px 16px 0 0;padding:28px 28px 24px;">
-    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-      <td style="background:rgba(255,255,255,.2);border-radius:9px;width:34px;height:34px;
-                 text-align:center;vertical-align:middle;font-size:16px;color:white;">⊞</td>
-      <td style="padding-left:10px;font-size:19px;font-weight:700;color:white;letter-spacing:-.5px;">Matrix</td>
-    </tr></table>
-    <div style="margin-top:18px;font-size:22px;font-weight:700;color:white;line-height:1.25;">
-      🔥 ${count} urgent task${plural} need${count===1?'s':''} attention</div>
-    <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,.7);">
-      Q1 · Urgent &amp; Important · ${date}</div>
+  return `<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Matrix Reminder</title></head>
+<body style="margin:0;padding:0;background:#EEF2FA;font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#EEF2FA">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:520px;">
+
+  <tr><td style="background:#00205B;border-radius:10px 10px 0 0;padding:28px 32px;">
+    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;">MARUTI MATRIX</div>
+    <div style="font-size:22px;font-weight:700;color:#ffffff;line-height:1.25;">${count} Q1 task${plural} pending</div>
+    <div style="margin-top:6px;font-size:13px;color:rgba(255,255,255,.55);">Urgent &amp; Important &nbsp;&middot;&nbsp; ${date}</div>
   </td></tr>
-  <tr><td style="background:#ffffff;padding:20px 24px 12px;">${cards}</td></tr>
-  <tr><td style="background:#f4f5fc;border-radius:0 0 16px 16px;padding:24px;text-align:center;
-                 border-top:1px solid #e6e8f6;">
-    <a href="${escHtml(appUrl)}"
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:white;
-              text-decoration:none;font-weight:700;font-size:14px;padding:13px 32px;border-radius:100px;">
-      Open Matrix App →</a>
-    <div style="margin-top:16px;font-size:11px;color:#a3a7c9;line-height:1.6;">
-      You're receiving this because email reminders are enabled in your Matrix account.<br>
-      Change frequency under <strong>Reminders</strong> in the sidebar.</div>
+
+  <tr><td style="background:#ffffff;padding:24px 32px 8px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
   </td></tr>
-</table></td></tr></table></body></html>`;
+
+  <tr><td style="background:#ffffff;padding:20px 32px 28px;text-align:center;">
+    <a href="${escHtml(appUrl)}" style="display:inline-block;background:#00205B;color:#ffffff;
+       font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;
+       text-decoration:none;padding:12px 32px;border-radius:7px;">Open Matrix &rarr;</a>
+  </td></tr>
+
+  <tr><td style="background:#F5F7FC;border-top:1px solid #E4EAF5;border-radius:0 0 10px 10px;
+                 padding:16px 32px;text-align:center;">
+    <div style="font-size:11px;color:#9BAABB;line-height:1.8;">
+      Reminders are enabled for your Matrix account.<br>
+      To change frequency, open <strong>Reminders</strong> in the sidebar.
+    </div>
+  </td></tr>
+
+</table>
+</td></tr></table>
+</body></html>`;
 }
 
-async function postToPA(toEmail, taskList) {
-  const subject = `🔥 Matrix: ${taskList.length} Q1 task${taskList.length>1?'s':''} need attention`;
-  const res = await fetch(PA_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ to_email: toEmail, subject, html_body: buildReminderEmail(taskList) }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-}
-
-async function sendTaskEmail(task) {
+/* ── Sync notification doc — PA reads this to send reminders without app open ── */
+let cachedNextSendAt = null;
+async function syncNotifDoc(sendImmediately = false) {
   if (!NOTIFICATIONS_CONFIGURED || !currentUser) return;
   try {
-    await postToPA(currentUser.email, [task]);
-    showToast('Reminder sent ✓');
-  } catch { showToast('Failed to send — check Power Automate config'); }
-}
-function triggerNotify(taskId) {
-  const task = tasks.find(t => t.id === taskId); if (!task) return;
-  sendTaskEmail(task);
-}
+    const notifRef = doc(db, 'notifications', 'pending');
+    const open     = tasks.filter(t => t.q === 'q1' && !t.done);
+    const freqMs   = getFreqMs();
+    const enabled  = !!settings.reminderEnabled;
 
-/* ── On-open reminder check ── */
-async function checkReminder() {
-  if (!NOTIFICATIONS_CONFIGURED || !settings.reminderEnabled || !currentUser) return;
-  const freqMs = (settings.reminderFrequencyHours || 24) * 3_600_000;
-  if (Date.now() - (settings.lastReminderSentAt || 0) < freqMs) return;
-  const open = tasks.filter(t => t.q === 'q1' && !t.done);
-  if (!open.length) return;
-  try {
-    await postToPA(currentUser.email, open);
-    settings.lastReminderSentAt = Date.now();
-    await saveSettings();
-  } catch { /* silent */ }
+    let nextSendAt;
+    if (sendImmediately) {
+      nextSendAt = new Date().toISOString(); // past = PA sends on next poll
+    } else {
+      const snap = await getDoc(notifRef);
+      const existing = snap.exists() ? snap.data().nextSendAt : null;
+      nextSendAt = existing && new Date(existing) > new Date()
+        ? existing
+        : new Date(Date.now() + freqMs).toISOString();
+    }
+    cachedNextSendAt = nextSendAt;
+
+    await setDoc(notifRef, {
+      to_email:            currentUser.email,
+      subject:             `Matrix: ${open.length} Q1 task${open.length!==1?'s':''} need your attention`,
+      html_body:           open.length ? buildReminderEmail(open) : '',
+      tasks_count:         open.length,
+      reminderEnabled:     enabled,
+      reminderFrequencyMs: freqMs,
+      nextSendAt,
+    });
+  } catch(e) { console.error('syncNotifDoc failed:', e); }
 }
 
 /* ── Category modal ── */
@@ -693,6 +855,90 @@ function renderCatModal() {
   });
 }
 
+/* ── People modal ── */
+const peopleOverlay = document.getElementById('people-overlay');
+document.getElementById('people-btn').addEventListener('click', () => { renderPeopleModal(); peopleOverlay.classList.add('open'); });
+async function closePeopleModal() {
+  // Commit any in-progress name edits, then drop unnamed entries.
+  document.querySelectorAll('.person-name-inp').forEach(inp => {
+    const idx = +inp.getAttribute('data-idx');
+    if (people[idx]) people[idx].name = inp.value.trim();
+  });
+  people = people.filter(p => p.name);
+  await savePeople();
+  peopleOverlay.classList.remove('open');
+  refreshAssigneeSelects();
+  rebuildEditAssignee();
+  render();
+}
+document.getElementById('people-close').addEventListener('click', closePeopleModal);
+peopleOverlay.addEventListener('click', e => { if (e.target === peopleOverlay) closePeopleModal(); });
+document.getElementById('add-person-btn').addEventListener('click', () => {
+  const color = PERSON_COLORS[people.length % PERSON_COLORS.length];
+  people.push({ id: 'person_' + genId(), name: '', color });
+  renderPeopleModal();
+  const inputs = document.querySelectorAll('.person-name-inp');
+  const last = inputs[inputs.length - 1];
+  if (last) last.focus();
+});
+
+function renderPeopleModal() {
+  const list = document.getElementById('people-list');
+  if (!people.length) {
+    list.innerHTML = `<div class="people-empty">No people yet. Add someone to delegate tasks to.</div>`;
+  } else {
+    list.innerHTML = people.map((p, i) => `
+      <div class="cat-row" data-idx="${i}">
+        <button class="person-swatch" style="background:${p.color}" data-idx="${i}" title="Cycle colour">${p.name ? esc(initials(p.name)) : ''}</button>
+        <input class="cat-label-inp person-name-inp" value="${esc(p.name)}" placeholder="Name…" data-idx="${i}">
+        <div class="cat-err" id="person-err-${i}">In use — reassign tasks first.</div>
+        <button class="cat-del-btn" data-idx="${i}" title="Delete">✕</button>
+      </div>`).join('');
+  }
+
+  list.querySelectorAll('.person-swatch').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.getAttribute('data-idx');
+      const cur = PERSON_COLORS.indexOf(people[idx].color);
+      people[idx].color = PERSON_COLORS[(cur + 1) % PERSON_COLORS.length];
+      renderPeopleModal();
+    });
+  });
+  list.querySelectorAll('.person-name-inp').forEach(inp => {
+    const commit = () => {
+      const idx = +inp.getAttribute('data-idx');
+      people[idx].name = inp.value.trim();
+    };
+    inp.addEventListener('input', () => {
+      const idx = +inp.getAttribute('data-idx');
+      const sw  = list.querySelector(`.person-swatch[data-idx="${idx}"]`);
+      if (sw) sw.textContent = inp.value.trim() ? initials(inp.value) : '';
+    });
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+  });
+  list.querySelectorAll('.cat-del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.getAttribute('data-idx');
+      if (tasks.some(t => t.assignee === people[idx].id)) {
+        const err = document.getElementById('person-err-' + idx);
+        if (err) err.style.display = 'block';
+        return;
+      }
+      people.splice(idx, 1); renderPeopleModal();
+    });
+  });
+}
+
+/* Open the people modal from an assignee <select>'s "Add new person" option. */
+function handleAssigneePick(sel, onPicked) {
+  if (sel.value === '__add__') {
+    sel.value = onPicked ? onPicked() : '';
+    renderPeopleModal();
+    peopleOverlay.classList.add('open');
+  }
+}
+
 /* ── Maximize on q-icon click ── */
 document.querySelectorAll('.q-icon').forEach(icon => {
   icon.addEventListener('click', () => {
@@ -719,17 +965,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 /* ── Task operations (Firestore) ── */
-async function addTask(q, text, note, tag) {
+async function addTask(q, text, note, tag, assignee) {
   if (!text.trim() || !currentUser) return;
   const id = genId();
   const t = {
     q, text: text.trim(), note: (note || '').trim(),
     tag: tag || categories[0].id, done: false,
+    assignee: (q === 'q3' && assignee && assignee !== '__add__') ? assignee : '',
     createdAt: Date.now(), completedAt: null,
   };
   try {
     await setDoc(doc(tasksRef, id), t);
-    if (q === 'q1' && NOTIFICATIONS_CONFIGURED) sendTaskEmail({ ...t, id });
   } catch { showToast('Failed to add task'); }
 }
 
@@ -785,6 +1031,8 @@ document.querySelectorAll('.add-task-btn').forEach(btn => {
     btn.style.display = isOpen ? 'none' : '';
     if (isOpen) {
       panel.querySelector('.inline-sel').innerHTML = buildCatOptions('');
+      const asg = panel.querySelector('.inline-assignee');
+      if (asg) asg.innerHTML = buildPeopleOptions('');
       setTimeout(() => panel.querySelector('.inline-inp').focus(), 50);
     }
   });
@@ -808,13 +1056,17 @@ function submitInlineAdd(q) {
   const inp   = panel.querySelector('.inline-inp');
   const note  = panel.querySelector('.inline-note');
   const sel   = panel.querySelector('.inline-sel');
+  const asg   = panel.querySelector('.inline-assignee');
   if (!inp.value.trim()) { inp.focus(); return; }
-  addTask(q, inp.value, note.value, sel.value);
+  addTask(q, inp.value, note.value, sel.value, asg ? asg.value : '');
   inp.value = ''; note.value = ''; inp.focus();
 }
 
 document.querySelectorAll('.inline-ok').forEach(btn => {
   btn.addEventListener('click', () => submitInlineAdd(btn.getAttribute('data-q')));
+});
+document.querySelectorAll('.inline-assignee').forEach(sel => {
+  sel.addEventListener('change', () => handleAssigneePick(sel));
 });
 document.querySelectorAll('.inline-inp').forEach(inp => {
   inp.addEventListener('keydown', e => {
@@ -840,7 +1092,9 @@ document.querySelectorAll('.quadrant').forEach(quad => {
   quad.addEventListener('drop', async e => {
     e.preventDefault(); quad.classList.remove('drag-over');
     const id = e.dataTransfer.getData('text/plain') || dragId; if (!id) return;
-    try { await updateDoc(doc(tasksRef, id), { q: quad.getAttribute('data-q') }); }
+    const newQ  = quad.getAttribute('data-q');
+    const fromQ = tasks.find(t => t.id === id)?.q;
+    try { await updateDoc(doc(tasksRef, id), { q: newQ }); logMovement(id, fromQ, newQ); }
     catch { /* silent */ }
   });
 });
@@ -873,7 +1127,8 @@ function makeTouchDraggable(card, id, q) {
     const tq = el ? el.closest('.quadrant') : null;
     document.querySelectorAll('.quadrant').forEach(q => q.classList.remove('drag-over'));
     if (tq && tq.getAttribute('data-q') !== touchOriginQ) {
-      try { await updateDoc(doc(tasksRef, touchDragId), { q: tq.getAttribute('data-q') }); }
+      const newQ = tq.getAttribute('data-q');
+      try { await updateDoc(doc(tasksRef, touchDragId), { q: newQ }); logMovement(touchDragId, touchOriginQ, newQ); }
       catch { /* silent */ }
     }
     touchClone.remove(); touchClone = null; card.style.opacity = '';
@@ -887,10 +1142,11 @@ function makeTouchDraggable(card, id, q) {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const id = el.getAttribute('data-id');
     const a  = el.getAttribute('data-action');
-    if      (a === 'toggle') toggleTask(id);
-    else if (a === 'edit')   openEdit(id);
-    else if (a === 'del')    deleteTask(id);
-    else if (a === 'notify') triggerNotify(id);
+    if      (a === 'toggle')  toggleTask(id);
+    else if (a === 'edit')    openEdit(id);
+    else if (a === 'del')     deleteTask(id);
+    else if (a === 'archive') archiveTask(id);
+    else if (a === 'notify')  triggerNotify(id);
   });
 });
 
@@ -900,11 +1156,91 @@ function lerpColor(t) {
   return `rgb(${Math.round(r[0]+(b[0]-r[0])*t)},${Math.round(r[1]+(b[1]-r[1])*t)},${Math.round(r[2]+(b[2]-r[2])*t)})`;
 }
 
+/* ── Archive ── */
+function archiveCardHTML(t) {
+  const qLabel = {q1:'Q1',q2:'Q2',q3:'Q3',q4:'Q4'}[t.q];
+  const qColor = {q1:'var(--rust)',q2:'var(--primary)',q3:'var(--green)',q4:'var(--ink3)'}[t.q];
+  return `<div class="archive-card">
+    <div class="archive-card-body">
+      <div class="archive-task-text">${esc(t.text)}</div>
+      <div class="archive-task-meta">
+        <span class="archive-q-badge" style="background:${qColor}18;color:${qColor};">${qLabel}</span>
+        <span class="task-tag" style="${tagStyle(t.tag||'other')}">${esc(getCatLabel(t.tag||'other'))}</span>
+        ${t.completedAt ? `<span class="archive-date">Done ${fmtDate(t.completedAt)}</span>` : ''}
+      </div>
+    </div>
+    <div class="archive-card-actions">
+      <button class="ta-btn restore-btn" data-action="restore" data-id="${t.id}" title="Restore to quadrant">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h5a3 3 0 010 6H4"/><path d="M4 3L2 5l2 2"/></svg>
+      </button>
+      <button class="ta-btn del" data-action="arch-del" data-id="${t.id}" title="Delete permanently">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg>
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderArchive() {
+  const archived = tasks.filter(isArchived);
+  const matrixWrap = document.getElementById('matrix-wrap');
+  const archiveTab = document.getElementById('archive-tab');
+  if (!archived.length) {
+    matrixWrap.classList.remove('has-archive');
+    if (archiveTab) archiveTab.style.display = 'none';
+    if (activeTab === 'archive') {
+      activeTab = 'q1';
+      matrixWrap.setAttribute('data-active-tab', 'q1');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.q === 'q1'));
+    }
+    return;
+  }
+  matrixWrap.classList.add('has-archive');
+  if (archiveTab) archiveTab.style.display = '';
+  document.getElementById('archive-count').textContent = archived.length;
+  const qOrder = ['q1','q2','q3','q4'];
+  const qName  = {q1:'Do First',q2:'Schedule',q3:'Delegate',q4:'Eliminate'};
+  const qColor = {q1:'var(--rust)',q2:'var(--primary)',q3:'var(--green)',q4:'var(--ink3)'};
+  let html = '';
+  qOrder.forEach(q => {
+    const group = archived.filter(t => t.q === q);
+    if (!group.length) return;
+    html += `<div class="archive-group">
+      <div class="archive-group-label" style="color:${qColor[q]};">${qName[q]}</div>
+      ${group.map(archiveCardHTML).join('')}
+    </div>`;
+  });
+  document.getElementById('archive-body').innerHTML = html;
+}
+
+async function archiveTask(id) {
+  const task = tasks.find(t => t.id === id); if (!task) return;
+  try {
+    await updateDoc(doc(tasksRef, id), {
+      archived: true,
+      done: true,
+      completedAt: task.completedAt || Date.now(),
+    });
+    showToast('Moved to archive');
+  } catch { showToast('Failed to archive'); }
+}
+
+async function restoreTask(id) {
+  try {
+    await updateDoc(doc(tasksRef, id), { archived: false, done: false, completedAt: null });
+    showToast('Task restored');
+  } catch { showToast('Failed to restore'); }
+}
+
+document.getElementById('archive-pane').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const id = btn.getAttribute('data-id');
+  if (btn.getAttribute('data-action') === 'restore') restoreTask(id);
+  else if (btn.getAttribute('data-action') === 'arch-del') deleteTask(id);
+});
+
 /* ── Render ── */
 function taskHTML(t, isQ1) {
-  const bellBtn = isQ1 && NOTIFICATIONS_CONFIGURED
-    ? `<button class="ta-btn bell" data-action="notify" data-id="${t.id}" title="Send reminder">🔔</button>`
-    : '';
   const dateStr = t.done && t.completedAt
     ? `<span class="task-date done-date">✓ ${fmtDate(t.completedAt)}</span>`
     : t.createdAt
@@ -916,14 +1252,27 @@ function taskHTML(t, isQ1) {
     <div class="task-body">
       <div class="task-text">${esc(t.text)}</div>
       <div class="task-meta">
+        ${t.q === 'q3' ? personChip(t.assignee) : ''}
         <span class="task-tag" style="${tagStyle(t.tag||'other')}">${esc(getCatLabel(t.tag||'other'))}</span>
         ${dateStr}
       </div>
     </div>
     <div class="task-actions">
-      ${bellBtn}
-      <button class="ta-btn"     data-action="edit"   data-id="${t.id}" title="Edit">✎</button>
-      <button class="ta-btn del" data-action="del"    data-id="${t.id}" title="Delete">✕</button>
+      <button class="ta-btn" data-action="edit" data-id="${t.id}" title="Edit">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 1.5l2 2L3.5 11H1V8.5L8.5 1.5z"/>
+        </svg>
+      </button>
+      ${t.done ? `<button class="ta-btn arch" data-action="archive" data-id="${t.id}" title="Move to archive">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1.2" y="4.5" width="9.6" height="6" rx="1"/><path d="M1.2 4.5L2.5 1.5h7L10.8 4.5"/><path d="M4.5 7.2h3"/>
+        </svg>
+      </button>` : ''}
+      <button class="ta-btn del" data-action="del" data-id="${t.id}" title="Delete">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/>
+        </svg>
+      </button>
     </div>
   </div>`;
 }
@@ -931,7 +1280,7 @@ function taskHTML(t, isQ1) {
 function render() {
   let total = 0, done = 0;
   ['q1','q2','q3','q4'].forEach(q => {
-    const qt = tasks.filter(t => t.q === q);
+    const qt = tasks.filter(t => t.q === q && !isArchived(t));
     const dc = qt.filter(t => t.done).length;
     total += qt.length; done += dc;
     document.getElementById(q + '-count').textContent = qt.length ? `${dc}/${qt.length}` : '0';
@@ -958,6 +1307,7 @@ function render() {
   document.getElementById('stats-text').innerHTML =
     `<strong>${total - done}</strong> open · <strong>${done}</strong> done`;
   applySearch();
+  renderArchive();
 }
 
 /* ── localStorage migration ── */

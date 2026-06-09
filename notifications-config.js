@@ -30,5 +30,5 @@
  * 7. Paste that URL as the value of powerAutomateUrl below
  */
 window.NOTIFICATIONS_CONFIG = {
-  powerAutomateUrl: 'YOUR_POWER_AUTOMATE_URL'
+  powerAutomateUrl: 'https://summer-fire-8a2f.ishan-dogra101.workers.dev/'
 };
