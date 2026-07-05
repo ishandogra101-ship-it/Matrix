@@ -1,9 +1,7 @@
 name: Send Q1 Reminders
 
 on:
-  schedule:
-    - cron: '0 * * * *'   # Runs every hour; script skips users whose interval hasn't elapsed
-  workflow_dispatch:        # Also allows manual trigger from GitHub Actions tab for testing
+  workflow_dispatch:        # Manual trigger only (from GitHub Actions tab)
 
 jobs:
   send-reminders:
