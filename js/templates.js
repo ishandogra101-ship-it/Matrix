@@ -1,8 +1,8 @@
 /* ── templates ── pure HTML string builders + category/people lookups.
    Read state; no DOM, no side effects. ── */
-import { esc, initials, fmtDate } from './utils.js';
-import { state } from './state.js';
-import { SELF_PERSON } from './constants.js';
+import { esc, initials, fmtDate } from './utils.js?v=3';
+import { state } from './state.js?v=3';
+import { SELF_PERSON } from './constants.js?v=3';
 
 /* ── category helpers ── */
 export function getCatLabel(id) {

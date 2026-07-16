@@ -1,13 +1,13 @@
 /* ── modals ── the four modal flows (edit task, manage categories, manage
    people, reminder settings) plus the <select> refresh helpers they share.
    Persists through the store; data changes propagate back via the bus. ── */
-import { state } from './state.js';
-import { emit } from './bus.js';
-import { genId, esc, initials } from './utils.js';
-import { COLOR_PRESETS, PERSON_COLORS } from './constants.js';
-import { buildCatOptions, buildPeopleOptions } from './templates.js';
-import { saveCategories, savePeople, saveSettings, updateTaskDoc, logMovement } from './store.js';
-import { PRESET_VALS, freqToMs, msToLabel, getFreqMs, syncNotifDoc } from './reminders.js';
+import { state } from './state.js?v=3';
+import { emit } from './bus.js?v=3';
+import { genId, esc, initials } from './utils.js?v=3';
+import { COLOR_PRESETS, PERSON_COLORS } from './constants.js?v=3';
+import { buildCatOptions, buildPeopleOptions } from './templates.js?v=3';
+import { saveCategories, savePeople, saveSettings, updateTaskDoc, logMovement } from './store.js?v=3';
+import { PRESET_VALS, freqToMs, msToLabel, getFreqMs, syncNotifDoc } from './reminders.js?v=3';
 
 const $ = id => document.getElementById(id);
 

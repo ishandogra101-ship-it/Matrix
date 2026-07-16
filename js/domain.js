@@ -1,6 +1,6 @@
 /* ── domain ── derived data & business rules over tasks. Pure functions the
    view and store consume. ── */
-import { ARCHIVE_MS } from './constants.js';
+import { ARCHIVE_MS } from './constants.js?v=3';
 
 /* a task is archived when manually archived, or auto after ARCHIVE_MS done */
 export function isArchived(t) {

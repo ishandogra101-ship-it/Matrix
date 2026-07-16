@@ -1,11 +1,11 @@
 /* ── render ── reads state, writes DOM. Subscribed to bus change events in
    app.js. Does not import the store's write functions. ── */
-import { state } from './state.js';
-import { QUADRANTS } from './constants.js';
-import { quadrantTasks, isArchived } from './domain.js';
-import { taskHTML, archiveCardHTML } from './templates.js';
-import { attachDrag } from './dragdrop.js';
-import { lerpColor } from './utils.js';
+import { state } from './state.js?v=3';
+import { QUADRANTS } from './constants.js?v=3';
+import { quadrantTasks, isArchived } from './domain.js?v=3';
+import { taskHTML, archiveCardHTML } from './templates.js?v=3';
+import { attachDrag } from './dragdrop.js?v=3';
+import { lerpColor } from './utils.js?v=3';
 
 const $ = id => document.getElementById(id);
 

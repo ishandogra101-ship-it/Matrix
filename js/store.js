@@ -3,9 +3,9 @@
    the view layer — it emits 'tasks:changed' / 'categories:changed' /
    'people:changed' / 'settings:changed' / 'toast', and the view subscribes.
    All paths hang off state.refs so the auth seam lives in one place. ── */
-import { db, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, writeBatch, addDoc } from './firebase.js';
-import { emit } from './bus.js';
-import { state, setTasks, setCategories, setPeople, setSettings } from './state.js';
+import { db, collection, doc, onSnapshot, setDoc, updateDoc, deleteDoc, getDoc, writeBatch, addDoc } from './firebase.js?v=3';
+import { emit } from './bus.js?v=3';
+import { state, setTasks, setCategories, setPeople, setSettings } from './state.js?v=3';
 
 /* ── refs / subscriptions ── */
 export function initRefs(user) {

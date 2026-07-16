@@ -1,7 +1,7 @@
 /* ── stats ── dashboard page: KPIs, Chart.js charts, customize modal, xlsx
    export. One-shot Firestore read through the shared firebase.js seam. Chart
    and XLSX are globals from their CDN <script> tags. ── */
-import { configured, auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc } from './firebase.js';
+import { configured, auth, db, onAuthStateChanged, signOut, collection, getDocs, doc, getDoc } from './firebase.js?v=3';
 
 if (!configured) {
   document.querySelector('.main-area').innerHTML = `
