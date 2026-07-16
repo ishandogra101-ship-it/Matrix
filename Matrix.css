@@ -768,7 +768,23 @@ svg{display:block;}
   display:flex;flex-direction:column;
 }
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;z-index:1;}
+/* soft corner glow (Docket stat-cell accent) */
+.kpi-card::after{content:'';position:absolute;top:-30px;right:-30px;width:78px;height:78px;border-radius:50%;background:var(--ink4);opacity:.09;pointer-events:none;}
+[data-theme="dark"] .kpi-card::after{opacity:.16;}
 .kpi-card:hover{box-shadow:var(--sh);transform:translateY(-3px);border-color:var(--border2);}
+.kpi-open::after{background:var(--rust);}
+.kpi-done::after{background:var(--green);}
+.kpi-rate::after{background:var(--primary);}
+.kpi-avg::after{background:var(--amber);}
+.kpi-total::after{background:var(--ink4);}
+.kpi-q1::after{background:var(--rust);}
+.kpi-week::after{background:var(--blue);}
+.kpi-old::after{background:var(--amber);}
+.kpi-moves::after{background:var(--violet);}
+.kpi-esc::after{background:var(--rust);}
+.kpi-delegated::after{background:var(--green);}
+.kpi-undel::after{background:var(--amber);}
+.kpi-topperson::after{background:var(--blue);}
 .kpi-open::before{background:var(--grad-warm);}
 .kpi-done::before{background:var(--grad-mint);}
 .kpi-rate::before{background:var(--grad);}
