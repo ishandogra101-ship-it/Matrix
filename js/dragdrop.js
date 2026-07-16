@@ -1,9 +1,9 @@
 /* ── dragdrop ── desktop drag + touch drag for task cards: reorder within a
    quadrant and move between quadrants. Persists via the store. ── */
-import { state } from './state.js';
-import { emit } from './bus.js';
-import { updateTaskDoc, setSortOrders, logMovement } from './store.js';
-import { QUADRANTS } from './constants.js';
+import { state } from './state.js?v=3';
+import { emit } from './bus.js?v=3';
+import { updateTaskDoc, setSortOrders, logMovement } from './store.js?v=3';
+import { QUADRANTS } from './constants.js?v=3';
 
 /* reorder within a quadrant using the current DOM order as the source of truth */
 async function reorderWithinQuadrant(movedId, targetId, insertBefore, q) {

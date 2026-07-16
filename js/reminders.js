@@ -1,10 +1,10 @@
 /* ── reminders ── background email reminders via a Firestore doc that Power
    Automate polls (subject/html_body/nextSendAt). Builds the Outlook email and
    keeps the pending-notification doc in sync. ── */
-import { db, doc, setDoc, getDoc } from './firebase.js';
-import { state } from './state.js';
-import { escHtml, fmtDate } from './utils.js';
-import { getCatLabel } from './templates.js';
+import { db, doc, setDoc, getDoc } from './firebase.js?v=3';
+import { state } from './state.js?v=3';
+import { escHtml, fmtDate } from './utils.js?v=3';
+import { getCatLabel } from './templates.js?v=3';
 
 const NOTIFICATIONS_CONFIGURED = true;
 

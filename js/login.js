@@ -3,7 +3,7 @@
 import {
   configured, auth, db, doc, setDoc, onAuthStateChanged,
   signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail,
-} from './firebase.js';
+} from './firebase.js?v=3';
 
 const $ = id => document.getElementById(id);
 

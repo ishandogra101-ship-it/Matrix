@@ -2,8 +2,8 @@
    people/settings) are written by the store, which then emits on the bus so
    the view re-renders no matter who changed what. UI-only fields (editId,
    dragId, searchQ, activeTab) are mutated directly by their handlers. ── */
-import { emit } from './bus.js';
-import { DEFAULT_CATEGORIES } from './constants.js';
+import { emit } from './bus.js?v=3';
+import { DEFAULT_CATEGORIES } from './constants.js?v=3';
 
 export const state = {
   /* data caches (owned by the store) */

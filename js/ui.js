@@ -1,18 +1,45 @@
 /* ── ui ── app chrome that isn't a full modal flow: toast, confirm dialog,
    quadrant maximize, mobile tab nav. Imported by actions (confirmDelete) and
    booted from app.js. Does not import actions/render (no cycle). ── */
-import { on } from './bus.js';
-import { state } from './state.js';
+import { on } from './bus.js?v=3';
+import { state } from './state.js?v=3';
 
 const $ = id => document.getElementById(id);
 
+/* ── loading overlay ── */
+export function hideLoading() {
+  const l = $('loading');
+  if (l) l.classList.add('hidden');
+}
+
 /* ── toast ── */
-let toastTimer;
+let toastTimer, undoHandler;
+function resetUndo() {
+  const btn = $('toast-undo');
+  if (btn && undoHandler) { btn.removeEventListener('click', undoHandler); undoHandler = null; }
+}
 export function showToast(msg) {
-  const t = $('toast');
-  t.textContent = msg; t.classList.add('show');
+  const t = $('toast'), undo = $('toast-undo');
+  resetUndo();
+  $('toast-msg').textContent = msg;
+  if (undo) undo.style.display = 'none';
+  t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+/* toast with an Undo action; runs undoFn if the user clicks Undo before it fades */
+export function showUndoToast(msg, undoFn, ms = 5000) {
+  const t = $('toast'), undo = $('toast-undo');
+  resetUndo();
+  $('toast-msg').textContent = msg;
+  if (undo) {
+    undo.style.display = '';
+    undoHandler = () => { clearTimeout(toastTimer); t.classList.remove('show'); resetUndo(); undoFn(); };
+    undo.addEventListener('click', undoHandler);
+  }
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); resetUndo(); }, ms);
 }
 
 /* ── confirm dialog (destructive actions) ── */

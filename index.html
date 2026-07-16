@@ -6,15 +6,22 @@
 <title>Matrix — Eisenhower Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="Matrix.css?v=2">
+<link rel="stylesheet" href="Matrix.css?v=3">
 <script>(function(){try{var t=localStorage.getItem('matrix-theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}window.__toggleTheme=function(){var d=document.documentElement.getAttribute('data-theme')==='dark';var n=d?'light':'dark';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('matrix-theme',n);}catch(e){}};})();</script>
 <script src="firebase-config.js"></script>
 <script src="notifications-config.js"></script>
 </head>
 <body>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<!-- Branded loading screen (hidden once the first data snapshot renders) -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-brand">Matrix</div>
+  <div class="loading-sub">Eisenhower Planner</div>
+  <div class="loading-dots"><span class="loading-dot"></span><span class="loading-dot"></span><span class="loading-dot"></span></div>
+</div>
+
+<!-- Toast (with Undo) -->
+<div class="toast" id="toast"><span class="toast-msg" id="toast-msg"></span><button class="toast-undo" id="toast-undo">Undo</button></div>
 
 <!-- Confirm dialog -->
 <div class="confirm-overlay" id="confirm-overlay">
@@ -366,6 +373,6 @@
   </div><!-- /main-area -->
 </div><!-- /app-layout -->
 
-<script type="module" src="js/app.js?v=2"></script>
+<script type="module" src="js/app.js?v=3"></script>
 </body>
 </html>

@@ -1,19 +1,20 @@
 /* ── app ── board entry point. Boots chrome + modals, wires the bus to the
    renderer, attaches delegated DOM listeners, guards auth, and starts the
    Firestore subscription. Mirrors Docket's main.js. ── */
-import { configured, auth, onAuthStateChanged, signOut } from './firebase.js';
-import { on } from './bus.js';
-import { state } from './state.js';
-import { QUADRANTS } from './constants.js';
-import { initRefs, subscribeTasks, unsubscribe, loadCategories, loadPeople, loadSettings } from './store.js';
-import { render, applySearch } from './render.js';
-import { initQuadrantDropZones } from './dragdrop.js';
-import { buildCatOptions, buildPeopleOptions } from './templates.js';
-import * as A from './actions.js';
-import { initUI } from './ui.js';
-import { initModals, openEdit, handleAssigneePick, refreshAllSelects, refreshAssigneeSelects, rebuildEditAssignee } from './modals.js';
-import { syncNotifDoc } from './reminders.js';
-import { checkMigration } from './migration.js';
+import { configured, auth, onAuthStateChanged, signOut } from './firebase.js?v=3';
+import { on } from './bus.js?v=3';
+import { state } from './state.js?v=3';
+import { QUADRANTS } from './constants.js?v=3';
+import { initRefs, subscribeTasks, unsubscribe, loadCategories, loadPeople, loadSettings } from './store.js?v=3';
+import { render, applySearch } from './render.js?v=3';
+import { initQuadrantDropZones } from './dragdrop.js?v=3';
+import { buildCatOptions, buildPeopleOptions } from './templates.js?v=3';
+import * as A from './actions.js?v=3';
+import { burst } from './confetti.js?v=3';
+import { initUI, hideLoading } from './ui.js?v=3';
+import { initModals, openEdit, handleAssigneePick, refreshAllSelects, refreshAssigneeSelects, rebuildEditAssignee } from './modals.js?v=3';
+import { syncNotifDoc } from './reminders.js?v=3';
+import { checkMigration } from './migration.js?v=3';
 
 const $ = id => document.getElementById(id);
 const BASE = window.MATRIX_BASE || './';   // './' at site root, '../' for clean-URL folder copies
@@ -25,6 +26,7 @@ if (!configured) {
       <h2 style="font-family:'Space Grotesk',sans-serif;margin-bottom:12px;">Firebase setup required</h2>
       <p style="color:#73769e;line-height:1.6;">Open <code style="background:#eef0fb;padding:2px 8px;border-radius:5px;">firebase-config.js</code> and fill in your Firebase project credentials.<br>See the comments in that file for step-by-step instructions.</p>
     </div>`;
+  hideLoading();
   throw new Error('Firebase not configured');
 }
 
@@ -48,6 +50,9 @@ $('sb-logout').addEventListener('click', async () => {
 });
 $('clear-done-btn').addEventListener('click', A.clearDone);
 
+/* safety net: never leave the loading screen up if data never arrives */
+setTimeout(hideLoading, 6000);
+
 /* ── auth guard ── */
 onAuthStateChanged(auth, user => {
   if (!user) { window.location.href = BASE + 'login'; return; }
@@ -59,7 +64,7 @@ async function initApp(user) {
   $('sb-user').textContent = user.email.split('@')[0];
   await Promise.all([loadCategories(), loadPeople(), loadSettings()]);
   refreshAllSelects();
-  subscribeTasks(() => syncNotifDoc());   // sync the notification doc after first snapshot
+  subscribeTasks(() => { hideLoading(); syncNotifDoc(); });   // reveal board + sync after first snapshot
   checkMigration();
 }
 
@@ -70,7 +75,10 @@ function initBoardDelegation() {
       const el = e.target.closest('[data-action]'); if (!el) return;
       const id = el.getAttribute('data-id');
       switch (el.getAttribute('data-action')) {
-        case 'toggle':   A.toggleTask(id); break;
+        case 'toggle':
+          if (!el.classList.contains('checked')) burst(e.clientX, e.clientY);  // celebrate on complete
+          A.toggleTask(id);
+          break;
         case 'edit':     openEdit(id); break;
         case 'del':      A.deleteTask(id); break;
         case 'archive':  A.archiveTask(id); break;

@@ -1,7 +1,7 @@
 /* ── migration ── one-time import of tasks left in localStorage by the
    pre-Firestore version. Shows a banner; imports on confirm. ── */
-import { emit } from './bus.js';
-import { importLegacyTasks } from './store.js';
+import { emit } from './bus.js?v=3';
+import { importLegacyTasks } from './store.js?v=3';
 
 async function importLegacy(oldTasks, banner) {
   try {
